@@ -17,7 +17,7 @@ def get_password_hash(password: str) -> str:
         password = password_bytes[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 @router.post("/register")
@@ -33,12 +33,14 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_d
     return {"message": "Usuário cadastrado com sucesso"}
 
 @router.post("/login")
-def login(request: schemas.UserLogin, db: Session = Depends(database.get_db)):
+def login_user(request: schemas.UserLogin, db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.email == request.email).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
-    if not verify_password(request.password, user.password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Senha incorreta")
     
-    access_token = create_access_token(data={"sub": user.email})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")  # <-- muda aqui
+    
+    if not verify_password(request.password, user.password):
+        raise HTTPException(status_code=400, detail="Senha incorreta")  # <-- e aqui
+
+    access_token = create_access_token({"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}

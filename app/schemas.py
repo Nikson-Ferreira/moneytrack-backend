@@ -1,11 +1,22 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
+# =====================
+# USER
+# =====================
 
-# Esquema para criação de usuário (entrada de dados)
-class UserCreate(BaseModel):
+class User(BaseModel):
+       id: int
+       name: str
+       email: str
+       password: str  # Ou omita se não quiser expor
+       created_at: datetime  # Se usar datetime
+       
+       model_config = ConfigDict(from_attributes=True)
+
+class UserCreate(BaseModel):# Esquema para criação de usuário
     name: str
     email: EmailStr
     password: str
@@ -16,17 +27,18 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
-    monthly_income: Optional[float]
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True)
 
-# --- Schema base de transação ---
+# =====================
+# TRANSACTION
+# =====================
 class TransactionBase(BaseModel):
     description: str
     amount: float
-    type: str
+    type: str  # entrada ou saida
+    date: Optional[datetime] = None
 
 # --- Para criação ---
 class TransactionCreate(TransactionBase):
@@ -43,3 +55,18 @@ class Transaction(TransactionBase):
 class UserLogin(BaseModel):
     email: str
     password: str
+    
+class TransactionCreate(TransactionBase):
+    pass
+
+class TransactionResponse(BaseModel):
+    id: int
+    created_at: Optional[datetime] = None 
+    
+    model_config = ConfigDict(from_attributes=True)
+         
+class TransactionSummary(BaseModel):
+    user_id: int
+    total_income: float
+    total_expenses: float
+    balance: float
