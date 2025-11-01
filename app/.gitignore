@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Banco local
+*.db
+moneytrack.db
+db.sqlite3
+
+# Ambiente
+.env
+
+# VS Code
+.vscode/
+
+# Arquivos de testes temporários
+tests/__pycache__/
