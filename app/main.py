@@ -1,22 +1,45 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
+from app import database
 from app.database import engine
 from app import models
 from app.routes import auth, transactions, users
 
 # Cria o app principal do FastAPI
-app = FastAPI(title="MoneyTrack API", version="1.0")
+app = FastAPI(
+    title="MoneyTrack API",
+    description="API do sistema de controle financeiro pessoal (MoneyTrack)",
+    version="1.0.0"
+)
+
+models.Base.metadata.create_all(bind=database.engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Pode restringir depois: ["https://moneytrack-frontend.vercel.app"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
-# Cria as tabelas no banco (com base nos models)
-models.Base.metadata.create_all(bind=engine)
-
-# Rota inicial (teste)
-@app.get("/")
-def home():
-    return {"message": "🚀 MoneyTrack API rodando com sucesso!"}
 
 app.include_router(transactions.router)
 app.include_router(users.router)
 app.include_router(auth.router)
+
+# 🔹 Rota inicial (teste rápido da API)
+@app.get("/")
+def root():
+    return {"message": "🚀 MoneyTrack API online e funcionando!"}
+
+# 🔹 Ponto de entrada para execução local
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",  # Necessário para rodar na nuvem
+        port=10000,      # Porta padrão do Render
+        reload=True
+    )
