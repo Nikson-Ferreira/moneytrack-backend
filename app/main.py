@@ -37,9 +37,12 @@ def root():
 # 🔹 Ponto de entrada para execução local
 if __name__ == "__main__":
     import uvicorn
+    import os
+
+    port = int(os.environ.get("PORT", 10000))  # Usa a porta que o Render fornecer
+
     uvicorn.run(
         "app.main:app",
-        host="0.0.0.0",  # Necessário para rodar na nuvem
-        port=10000,      # Porta padrão do Render
-        reload=True
+        host="0.0.0.0",
+        port=port
     )
