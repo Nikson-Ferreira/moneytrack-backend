@@ -41,14 +41,13 @@ def test_create_transaction():
     assert data["description"] == "Salário"
 
 def test_get_transactions():
-    # Fazer login novamente para obter o token
+
     login_data = {"email": "nikson@example.com", "password": "123456"}
     response = client.post("/auth/login", json=login_data)
     assert response.status_code == 200
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Buscar todas as transações do usuário
     response = client.get("/transactions/", headers=headers)
     assert response.status_code == 200
     data = response.json()
@@ -57,14 +56,13 @@ def test_get_transactions():
     assert data[0]["description"] == "Salário"
 
 def test_transaction_summary():
-    # Fazer login novamente
+
     login_data = {"email": "nikson@example.com", "password": "123456"}
     response = client.post("/auth/login", json=login_data)
     assert response.status_code == 200
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Buscar o resumo financeiro
     response = client.get("/transactions/summary/1", headers=headers)
     assert response.status_code == 200
     summary = response.json()

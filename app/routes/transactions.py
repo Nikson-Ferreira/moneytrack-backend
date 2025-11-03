@@ -49,14 +49,14 @@ def get_transactions_by_user(user_id: int, db: Session = Depends(get_db)):
     return transactions
 
 
-# ✅ Obter resumo financeiro (entradas, saídas, saldo)
-@router.get("/summary/{user_id}", response_model=schemas.TransactionSummary)  # Adicione um schema em schemas.py se não tiver
+#Obter resumo financeiro (entradas, saídas, saldo)
+@router.get("/summary/{user_id}", response_model=schemas.TransactionSummary) 
 def get_transaction_summary(
     user_id: int, 
     db: Session = Depends(database.get_db), 
-    current_user: schemas.User = Depends(get_current_user)  # Verifica JWT e pega o usuário logado
+    current_user: schemas.User = Depends(get_current_user)
 ):
-    # Verificar se o user_id do parâmetro é o mesmo do usuário logado (segurança)
+    # Verificar se o user_id do parâmetro é o mesmo do usuário logado 
     if current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Acesso negado: você só pode ver seu próprio resumo")
     

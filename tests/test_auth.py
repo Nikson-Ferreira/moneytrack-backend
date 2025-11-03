@@ -11,7 +11,7 @@ def test_register_user():
         "password": "123456"
     }
     response = client.post("/auth/register", json=data)
-    assert response.status_code in [200, 400]  # 400 se já cadastrado
+    assert response.status_code in [200, 400]
     assert "message" in response.json() or "detail" in response.json()
 
 def test_register_duplicate_user():

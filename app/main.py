@@ -13,28 +13,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
-models.Base.metadata.create_all(bind=database.engine)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Pode restringir depois: ["https://moneytrack-frontend.vercel.app"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 app.include_router(transactions.router)
 app.include_router(users.router)
 app.include_router(auth.router)
+models.Base.metadata.create_all(bind=database.engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 🔹 Rota inicial (teste rápido da API)
 @app.get("/")
 def root():
     return {"message": "🚀 MoneyTrack API online e funcionando!"}
 
-# 🔹 Ponto de entrada para execução local
 if __name__ == "__main__":
     import uvicorn
     import os

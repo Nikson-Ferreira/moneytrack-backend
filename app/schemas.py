@@ -11,18 +11,17 @@ class User(BaseModel):
        id: int
        name: str
        email: str
-       password: str  # Ou omita se não quiser expor
-       created_at: datetime  # Se usar datetime
+       password: str  
+       created_at: datetime 
        
        model_config = ConfigDict(from_attributes=True)
 
-class UserCreate(BaseModel):# Esquema para criação de usuário
+class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
     monthly_income: Optional[float] = None
 
-# Esquema para resposta (saída de dados)
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -37,14 +36,12 @@ class UserResponse(BaseModel):
 class TransactionBase(BaseModel):
     description: str
     amount: float
-    type: str  # entrada ou saida
+    type: str  
     date: Optional[datetime] = None
 
-# --- Para criação ---
 class TransactionCreate(TransactionBase):
     user_id: int
     
-# --- Para resposta ---
 class Transaction(TransactionBase):
     id: int
     user_id: int

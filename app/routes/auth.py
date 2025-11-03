@@ -4,14 +4,12 @@ from app import models, schemas, database
 from passlib.context import CryptContext
 from app.token import create_access_token
 
-# Definição única do router (removi a duplicata)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# Contexto de senha com bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password: str) -> str:
-    # Trunca a senha para 72 bytes (UTF-8) para evitar erro do bcrypt
+
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
         password = password_bytes[:72].decode('utf-8', errors='ignore')
@@ -37,10 +35,10 @@ def login_user(request: schemas.UserLogin, db: Session = Depends(database.get_db
     user = db.query(models.User).filter(models.User.email == request.email).first()
     
     if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")  # <-- muda aqui
+        raise HTTPException(status_code=404, detail="Usuário não encontrado") 
     
     if not verify_password(request.password, user.password):
-        raise HTTPException(status_code=400, detail="Senha incorreta")  # <-- e aqui
-
+        raise HTTPException(status_code=400, detail="Senha incorreta") 
+    
     access_token = create_access_token({"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}

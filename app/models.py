@@ -20,7 +20,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String(255), nullable=False)
     amount = Column(Float, nullable=False)
-    type = Column(String(50), nullable=False)  # "entrada" ou "saida"
+    type = Column(String(50), nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"))
