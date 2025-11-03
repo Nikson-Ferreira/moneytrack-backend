@@ -29,6 +29,10 @@ class UserResponse(BaseModel):
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+    
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 # =====================
 # TRANSACTION
@@ -36,12 +40,12 @@ class UserResponse(BaseModel):
 class TransactionBase(BaseModel):
     description: str
     amount: float
-    type: str  
+    type: str  # "income" ou "expense"
     date: Optional[datetime] = None
 
 class TransactionCreate(TransactionBase):
     user_id: int
-    
+
 class Transaction(TransactionBase):
     id: int
     user_id: int
@@ -49,19 +53,12 @@ class Transaction(TransactionBase):
     class Config:
         from_attributes = True
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
-    
-class TransactionCreate(TransactionBase):
-    pass
-
 class TransactionResponse(BaseModel):
     id: int
-    created_at: Optional[datetime] = None 
-    
+    created_at: Optional[datetime] = None
+
     model_config = ConfigDict(from_attributes=True)
-         
+
 class TransactionSummary(BaseModel):
     user_id: int
     total_income: float
