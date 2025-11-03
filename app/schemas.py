@@ -44,7 +44,7 @@ class TransactionBase(BaseModel):
     date: Optional[datetime] = None
 
 class TransactionCreate(TransactionBase):
-    user_id: int
+    pass
 
 class Transaction(TransactionBase):
     id: int
