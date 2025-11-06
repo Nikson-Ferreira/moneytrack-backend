@@ -182,7 +182,6 @@ moneytrack/
 ├── requirements.txt
 └── README.md
 
-
 ✅ Principais Resultados
 
 Backend 100% funcional com autenticação, CRUD e testes TDD
