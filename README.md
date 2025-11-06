@@ -1,87 +1,108 @@
-# 💰 MoneyTrack – Sistema de Controle Financeiro Pessoal
+💰 MoneyTrack – Sistema de Controle Financeiro Pessoal
 
-O **MoneyTrack** é um sistema desenvolvido para auxiliar no controle financeiro pessoal, permitindo que o usuário registre receitas e despesas, visualize seu histórico de movimentações e acompanhe seu saldo de forma simples e organizada.
+O MoneyTrack é um sistema desenvolvido para auxiliar no controle financeiro pessoal, permitindo que o usuário registre receitas e despesas, visualize seu histórico de movimentações e acompanhe seu saldo de forma simples e organizada.
 
----
+🎯 Objetivo do Projeto
 
-## ✅ Objetivo do Projeto
 Facilitar a organização financeira de forma prática, permitindo que qualquer pessoa acompanhe seus gastos, identifique hábitos de consumo e tome decisões melhores sobre seu dinheiro.
 
----
+🚀 Funcionalidades
 
-## 🚀 Funcionalidades
-- Cadastro de **receitas** e **despesas**
-- Histórico de transações
-- Categorização financeira
-- Exibição de saldo total
-- Interface mobile amigável (Android)
-- Protótipo visual no Figma
-- Backend com API REST em FastAPI
+Cadastro de usuários e autenticação via JWT
 
----
+Registro de receitas e despesas
 
-## 🛠️ Tecnologias Utilizadas
-| Camada     | Tecnologia               |
-|------------|--------------------------|
-| Frontend   | Kotlin + Jetpack Compose |
-| Backend    | Python + FastAPI         |
-| Banco de Dados | SQLite               |
-| Design     | Figma                    |
-| Arquitetura | MVVM                    |
-| Versionamento | Git + GitHub          |
+Histórico completo de transações financeiras
 
----
+Resumo financeiro (total de receitas, despesas e saldo)
 
-## 📌 Status do Projeto
-✅ Checkpoint 1 – Documentação inicial  
-✅ Checkpoint 2 – Protótipo no Figma + Casos de uso  
-✅ Checkpoint 3 – Início do backend com FastAPI  
-⬜ Integração frontend/backend  
-⬜ Testes  
-⬜ Deploy final  
+Integração com banco de dados SQLite
 
----
+Documentação automática via Swagger UI
 
-## 👨‍💻 Equipe
-Projeto desenvolvido em equipe na disciplina de **Projeto de Software**:
-- Nikson Ferreira de Lima / RA: 5163006
-- Rafaella Costa Barbosa / RA: 5162833
-- Joana Vivian Rodrigues Lemos / RA: 5163208
-- Guilherme Antônio de Souza  / RA: 1173003
+Testes automatizados (TDD) com Pytest
 
----
+Deploy do backend na nuvem (Render)
 
-## 🎨 Protótipo no Figma
-🔗 [Protótipo navegável](https://www.figma.com/file/SEU-LINK-AQUI)
+Frontend desenvolvido em Kotlin (Android)
 
----
+Protótipo visual no Figma
 
-## 📂 Documentação
+🧰 Tecnologias Utilizadas
+Camada	Tecnologia
+Frontend	Kotlin + Jetpack Compose
+Backend	Python + FastAPI
+Banco de Dados	SQLite
+Design	Figma
+Arquitetura	MVVM
+Versionamento	Git + GitHub
+Deploy	Render Cloud
+Testes	Pytest + TDD
+📌 Status do Projeto
+
+✅ Checkpoint 1 – Documentação inicial
+✅ Checkpoint 2 – Protótipo no Figma + Casos de uso
+✅ Checkpoint 3 – Backend com FastAPI + Banco de Dados + Testes TDD + Deploy Render
+⬜ Integração frontend/backend
+⬜ Versão final com relatórios e gráficos
+
+👨‍💻 Equipe
+
+Projeto desenvolvido em equipe na disciplina Projeto de Software (Uniube):
+
+🧑‍💻 Nikson Ferreira de Lima – RA: 5163006
+
+👩‍💻 Rafaella Costa Barbosa – RA: 5162833
+
+👩‍💻 Joana Vivian Rodrigues Lemos – RA: 5163208
+
+👨‍💻 Guilherme Antônio de Souza – RA: 1173003
+
+🎨 Protótipo no Figma
+
+🔗 Protótipo navegável do MoneyTrack (Figma)
+ (adicione o link real aqui)
+
+📚 Documentação
+
 A documentação do projeto inclui:
-- Escopo do sistema
-- Requisitos funcionais e não funcionais
-- Modelagem de casos de uso
-- Diagramas UML
-- Metodologia SCRUM aplicada
 
----
+Escopo do sistema
 
-## 🛠️ Como rodar o backend localmente
+Requisitos funcionais e não funcionais
 
-Siga os passos abaixo para executar o projeto MoneyTrack na sua máquina.
+Modelagem de casos de uso
 
+Diagramas UML (casos de uso, classes e sequência)
+
+Metodologia SCRUM aplicada
+
+Roteiro de testes automatizados (TDD)
+
+☁️ Deploy na Nuvem (Render)
+
+A API está hospedada na Render Cloud e pode ser acessada pelo link abaixo:
+
+🔗 https://moneytrack-backend.onrender.com
+
+A rota inicial (/) retorna:
+
+{"message": "🚀 MoneyTrack API online e funcionando!"}
+
+
+Documentação interativa (Swagger UI):
+👉 https://moneytrack-backend.onrender.com/docs
+
+⚙️ Como rodar o backend localmente
 🧩 1. Clonar o repositório
 git clone https://github.com/Nikson-Ferreira/moneytrack.git
 cd moneytrack
 
 🐍 2. Criar e ativar o ambiente virtual
-
-No terminal, execute:
-
 python -m venv venv
 
 
-Ative o ambiente virtual:
+Ativar:
 
 Windows (PowerShell):
 
@@ -96,56 +117,80 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 
-Se não existir o arquivo requirements.txt, instale manualmente:
+Caso não exista o arquivo requirements.txt, instale manualmente:
 
-pip install fastapi uvicorn sqlalchemy pymysql python-jose passlib[bcrypt] pydantic-settings
+pip install fastapi uvicorn sqlalchemy python-jose passlib[bcrypt] pydantic-settings pytest
 
-🗄️ 4. Configurar o banco de dados
+🗄️ 4. Banco de Dados
 
-Crie um arquivo .env na raiz do projeto (caso não exista) e adicione as variáveis do banco:
+O projeto utiliza SQLite por padrão, criando automaticamente o arquivo moneytrack.db na raiz ao rodar o servidor.
 
-DB_USER=seu_usuario
-DB_PASS=sua_senha
-DB_HOST=localhost
-DB_NAME=moneytrack_db
-
-
-💡 Caso esteja usando SQLite (padrão), o projeto criará automaticamente o arquivo moneytrack.db ao rodar.
-
-⚙️ 5. Rodar as migrações (opcional)
-
-Se estiver usando MySQL ou PostgreSQL:
-
-alembic upgrade head
-
-
-Para SQLite, este passo pode ser ignorado.
-
-▶️ 6. Executar o servidor
-
-Inicie a aplicação com:
-
+▶️ 5. Executar o servidor localmente
 uvicorn app.main:app --reload
 
 
-A aplicação ficará disponível em:
+Acesse a aplicação em:
 🔗 http://127.0.0.1:8000
 
-🧠 7. Testar as rotas
+🧠 Testar as rotas
 
-Acesse a documentação interativa (Swagger UI):
+Acesse o Swagger UI:
 👉 http://127.0.0.1:8000/docs
 
-Lá você pode:
+Principais rotas:
 
-Criar usuários (POST /auth/register)
+Método	Rota	Descrição
+POST	/auth/register	Cadastrar usuário
+POST	/auth/login	Login e geração de token JWT
+GET	/transactions/	Listar transações do usuário
+POST	/transactions/	Criar nova transação
+GET	/transactions/summary/{user_id}	Ver resumo financeiro
+GET	/users/	Listar todos os usuários
+🧪 Testes Automatizados (TDD)
 
-Fazer login (POST /auth/login)
+Os testes utilizam Pytest para validar:
 
-Gerar e testar tokens JWT
+Cadastro e login de usuários
 
-Registrar e consultar transações
+Autenticação com JWT
 
-✅ 8. Encerrando o servidor
+Criação e listagem de transações
 
-Pressione CTRL + C no terminal para parar o servidor.
+Resumo de transações
+
+Rodar os testes:
+
+pytest -v
+
+🧩 Estrutura do Projeto
+moneytrack/
+│
+├── app/
+│   ├── main.py              # Arquivo principal da aplicação
+│   ├── models.py            # Modelos do banco de dados
+│   ├── schemas.py           # Esquemas Pydantic (entrada e saída de dados)
+│   ├── database.py          # Conexão e configuração do banco
+│   └── routes/              # Rotas principais (auth, users, transactions)
+│
+├── tests/                   # Testes automatizados (TDD)
+│   ├── test_auth.py
+│   ├── test_transactions.py
+│   └── test_users.py
+│
+├── requirements.txt
+└── README.md
+
+✅ Principais Resultados
+
+Backend 100% funcional com autenticação, CRUD e testes TDD
+
+API deployada na nuvem (Render)
+
+Swagger UI documentando todas as rotas
+
+Integração futura com o aplicativo Android em Kotlin
+
+💬 Observações Finais
+
+O MoneyTrack foi projetado com foco em simplicidade, segurança e escalabilidade.
+Com o backend consolidado e testado, o próximo passo é integrar a aplicação Android e gerar relatórios financeiros visuais.
