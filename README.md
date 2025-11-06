@@ -140,13 +140,15 @@ Acesse o Swagger UI:
 Principais rotas:
 
 Método	Rota	Descrição
-POST	/auth/register	Cadastrar usuário
-POST	/auth/login	Login e geração de token JWT
-GET	/transactions/	Listar transações do usuário
-POST	/transactions/	Criar nova transação
-GET	/transactions/summary/{user_id}	Ver resumo financeiro
-GET	/users/	Listar todos os usuários
-🧪 Testes Automatizados (TDD)
+| Método | Rota                              | Descrição                    |
+| ------ | --------------------------------- | ---------------------------- |
+| `POST` | `/auth/register`                  | Cadastrar usuário            |
+| `POST` | `/auth/login`                     | Login e geração de token JWT |
+| `GET`  | `/transactions/`                  | Listar transações do usuário |
+| `POST` | `/transactions/`                  | Criar nova transação         |
+| `GET`  | `/transactions/summary/{user_id}` | Ver resumo financeiro        |
+| `GET`  | `/users/`                         | Listar todos os usuários     |
+
 
 Os testes utilizam Pytest para validar:
 
@@ -179,6 +181,7 @@ moneytrack/
 │
 ├── requirements.txt
 └── README.md
+
 
 ✅ Principais Resultados
 
