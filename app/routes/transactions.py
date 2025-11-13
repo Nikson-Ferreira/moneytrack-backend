@@ -32,10 +32,22 @@ def create_transaction(
 @router.get("/", response_model=list[schemas.Transaction])
 def get_transactions(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
+    start_date: str = None,
+    end_date: str = None,
+    type: str = None
 ):
-    transactions = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.id).all()
-    return transactions
+    query = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.id)
+    
+    if type:
+        query = query.filter(models.Transaction.type == type)
+    if start_date:
+        query = query.filter(models.Transaction.date >= start_date)
+    if end_date:
+        query = query.filter(models.Transaction.date <= end_date)
+
+    return query.order_by(models.Transaction.date.desc()).all()
+
 
 
 # ✅ Filtrar transações por ID de usuário (rota administrativa)
@@ -72,3 +84,26 @@ def get_transaction_summary(
         "total_expenses": total_expenses,
         "balance": balance
     }
+    
+@router.get("/summary", response_model=dict)
+def get_summary(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+    transactions = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.id).all()
+    income = sum(t.amount for t in transactions if t.type == "income")
+    expense = sum(t.amount for t in transactions if t.type == "expense")
+    balance = income - expense
+    return {"income": income, "expense": expense, "balance": balance}
+
+# 🔹 Histórico detalhado das transações do usuário logado
+@router.get("/history", response_model=list[schemas.Transaction])
+def get_transaction_history(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    transactions = db.query(models.Transaction).filter(
+        models.Transaction.user_id == current_user.id
+    ).order_by(models.Transaction.date.desc()).all()
+
+    if not transactions:
+        raise HTTPException(status_code=404, detail="Nenhuma transação encontrada")
+
+    return transactions

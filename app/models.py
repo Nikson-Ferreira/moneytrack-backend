@@ -24,5 +24,7 @@ class Transaction(Base):
     date = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"))
+    category = Column(String(50), nullable=True)
+
 
     user = relationship("User", back_populates="transactions")

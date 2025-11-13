@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app import models, schemas, database
+from app import models, oauth2, schemas, database
 from typing import List
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -24,7 +24,13 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     db.refresh(new_user)
     return new_user
 
-@router.get("/", response_model=List[schemas.UserResponse])
+@router.get("/", response_model=list[schemas.UserResponse])
 def get_users(db: Session = Depends(database.get_db)):
-    users = db.query(models.User).all()
-    return users
+    return db.query(models.User).all()
+
+# 🔹 Rota de perfil do usuário autenticado
+@router.get("/profile", response_model=schemas.UserResponse)
+def get_user_profile(current_user: models.User = Depends(oauth2.get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return current_user

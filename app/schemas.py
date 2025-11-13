@@ -40,6 +40,7 @@ class UserLogin(BaseModel):
 class TransactionBase(BaseModel):
     description: str
     amount: float
+    category: Optional[str] = None
     type: str  # "income" ou "expense"
     date: Optional[datetime] = None
 
