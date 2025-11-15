@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoneyTrack - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="./css/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+      <div class="card-body text-center">
+    <img src="LOGO MoneyTrack.png" alt="Logo" style="height: 100px;">
+        <p class="text-muted">Sistema de Controle Financeiro</p>
+        <form id="loginForm" novalidate>
+          <div class="mb-3 text-start form-validation-group">
+            <label for="email" class="form-label text-muted">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
+            <div class="invalid-feedback"></div>
+          </div>
+          <div class="mb-4 text-start form-validation-group">
+            <label for="senha" class="form-label text-muted">Senha</label>
+            <input type="password" class="form-control" id="senha" placeholder="sua senha" required>
+            <div class="invalid-feedback"></div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mb-3">Entrar</button>
+        </form>
+        <div class="d-flex justify-content-center">
+          <a href="cadastro.html" class="text-decoration-none small">Criar conta</a>
+        </div>
+        <p class="mt-4 pt-3 border-top text-muted small">© 2025 – Projeto acadêmico</p>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN..." crossorigin="anonymous"></script>
+  <script src="./js/script.js"></script>
+</body>
+</html>

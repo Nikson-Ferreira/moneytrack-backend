@@ -1,0 +1,174 @@
+:root {
+
+    --gradient-start: #151931;
+    --gradient-middle: #2a407e;
+    --gradient-end: #00ffcc;
+
+    --primary-color: #20d4b0;
+    --primary-color-light: #20d4b0;
+    --success-color: #0d6efd;
+    --danger-color: #151931;
+    --warning-color: #FFC107;
+
+    --body-bg: var(--gradient-start);
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --text-color: #212529;
+    --muted-text-color: #6c757d;
+    --border-color: #c0c4c9;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+}
+
+body {
+    background-image: linear-gradient(
+        135deg,
+        var(--gradient-start) 0%,
+        var(--gradient-middle) 50%,
+        var(--gradient-end) 100%
+    );
+    background-size: cover;
+    background-attachment: fixed;
+    color: var(--text-color);
+    transition: background-image 0.6s ease, color 0.4s ease;
+}
+
+.card, 
+.navbar-app, 
+.offcanvas, 
+.modal-content, 
+.offcanvas-header, 
+.offcanvas-body {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color);
+    transition: background-color 0.4s ease, color 0.4s ease;
+    border: none !important;
+}
+
+.text-muted {
+    color: var(--muted-text-color) !important;
+}
+
+.modal-header, .offcanvas-header {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.info-card {
+    border-radius: 12px; 
+    padding: 1.25rem !important; 
+    box-shadow: 0 4px 12px var(--shadow-color) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-4px); 
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+.info-card.bg-primary { 
+    background-color: var(--primary-color) !important; 
+    color: white !important;
+}
+.info-card.bg-success { 
+    background-color: var(--success-color) !important; 
+    color: white !important;
+}
+.info-card.bg-danger { 
+    background-color: var(--danger-color) !important; 
+    color: white !important;
+}
+
+.info-card.bg-primary:hover { 
+    background-color: var(--primary-color-light) !important; 
+}
+
+.info-card.bg-primary .bi,
+.info-card.bg-danger .bi {
+    color: white !important;
+}
+.info-card.bg-success .bi {
+    color: white !important;
+}
+
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--border-color) !important; 
+    box-shadow: 0 4px 15px var(--shadow-color) !important; 
+}
+
+.navbar-app {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--header-bg) !important;
+    box-shadow: 0 -3px 10px var(--shadow-color) !important; 
+    z-index: 1030;
+    border-top: 1px solid var(--border-color); 
+}
+
+.nav-link-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--muted-text-color) !important;
+    font-size: 0.75rem; 
+    padding: 0.5rem 0;
+    width: 25%;
+    max-width: 100px;
+    transition: color 0.3s ease;
+    font-weight: 500; 
+}
+
+.nav-link-app.active {
+    color: var(--primary-color) !important;
+    font-weight: 700; 
+}
+
+.btn-success.position-fixed {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    outline: none !important; 
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-success.position-fixed:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+    transform: scale(1.05); 
+    background-color: var(--primary-color-light) !important;
+    border-color: var(--primary-color-light) !important;
+}
+
+.perfil-img, .perfil-icon-offcanvas {
+    border-radius: 50% !important; 
+    background-color: var(--card-bg);
+    display: block;
+    box-shadow: none !important;
+}
+
+.perfil-icon {
+    line-height: 40px !important; 
+    border-radius: 50% !important;
+}
+
+#modalEditarTransacao .modal-header {
+    background-color: var(--warning-color) !important;
+    color: var(--text-color) !important; 
+    border-bottom-color: var(--warning-color) !important; 
+}
+
+#modalEditarTransacao .btn-warning {
+    color: var(--text-color) !important;
+    border-color: var(--warning-color) !important;
+}
+
+#buscaCategoria {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
