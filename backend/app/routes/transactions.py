@@ -4,24 +4,24 @@ from app import models, oauth2, schemas, database
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from app.oauth2 import get_current_user
+from app.database import get_db
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 get_db = database.get_db
 
 # ✅ Criar nova transação
-@router.post("/", response_model=schemas.Transaction)
+@router.post("/", response_model=schemas.Transaction, status_code=status.HTTP_201_CREATED)
 def create_transaction(
     transaction: schemas.TransactionCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user)
 ):
-    # Verifica se o usuário autenticado existe
     db_user = db.query(models.User).filter(models.User.id == current_user.id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    db_transaction = models.Transaction(**transaction.dict(), user_id=current_user.id)
+    db_transaction = models.Transaction(**transaction.model_dump(), user_id=current_user.id)
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)
@@ -62,28 +62,19 @@ def get_transactions_by_user(user_id: int, db: Session = Depends(get_db)):
 
 
 #Obter resumo financeiro (entradas, saídas, saldo)
-@router.get("/summary/{user_id}", response_model=schemas.TransactionSummary) 
-def get_transaction_summary(
-    user_id: int, 
-    db: Session = Depends(database.get_db), 
-    current_user: schemas.User = Depends(get_current_user)
-):
-    # Verificar se o user_id do parâmetro é o mesmo do usuário logado 
-    if current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="Acesso negado: você só pode ver seu próprio resumo")
+@router.get("/summary", response_model=dict)
+def get_summary(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+    transactions = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.id).all()
+    income = sum(t.amount for t in transactions if t.type == "income")
+    expense = sum(t.amount for t in transactions if t.type == "expense")
+    balance = income - expense
     
-    transactions = db.query(models.Transaction).filter(models.Transaction.user_id == user_id).all()
-    if not transactions:
-        raise HTTPException(status_code=404, detail="Nenhuma transação encontrada")
-    total_income = sum(t.amount for t in transactions if t.type.lower() == "income")
-    total_expenses = sum(t.amount for t in transactions if t.type.lower() == "expense")
-    balance = total_income - total_expenses
     return {
-        "user_id": user_id,
-        "total_income": total_income,
-        "total_expenses": total_expenses,
+        "total_income": income, 
+        "total_expense": expense, 
         "balance": balance
     }
+
     
 @router.get("/summary", response_model=dict)
 def get_summary(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
@@ -107,3 +98,69 @@ def get_transaction_history(
         raise HTTPException(status_code=404, detail="Nenhuma transação encontrada")
 
     return transactions
+
+@router.get("/{transaction_id}", response_model=schemas.Transaction)
+def get_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    transaction = db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.user_id == current_user.id
+    ).first()
+
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+
+    return transaction
+
+
+@router.put("/{transaction_id}", response_model=schemas.Transaction, status_code=status.HTTP_200_OK)
+def update_transaction(
+    transaction_id: int,
+    updated_data: schemas.TransactionUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    tr = (
+        db.query(models.Transaction)
+        .filter(
+            models.Transaction.id == transaction_id,
+            models.Transaction.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not tr:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+
+    for attr, value in updated_data.model_dump(exclude_unset=True).items():
+        setattr(tr, attr, value)
+
+    db.commit()
+    db.refresh(tr)
+    return tr
+
+
+@router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transaction(
+    transaction_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    tr_query = (
+        db.query(models.Transaction)
+        .filter(
+            models.Transaction.id == transaction_id,
+            models.Transaction.user_id == current_user.id
+        )
+    )
+    tr = tr_query.first()
+
+    if not tr:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+
+    tr_query.delete(synchronize_session=False)
+    db.commit()
+    return

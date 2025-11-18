@@ -23,3 +23,45 @@ def test_get_user_profile():
     data = response.json()
     assert "email" in data
     assert data["email"] == "nikson@example.com"
+
+def test_update_user():
+    # cria usuário primeiro
+    create = client.post("/users/", json={
+        "name": "Old Name",
+        "email": "old@example.com",
+        "password": "123456"
+    })
+    assert create.status_code == 200
+
+    user_id = create.json()["id"]
+
+    # atualiza usuário
+    response = client.put(f"/users/{user_id}", json={
+        "name": "New Name",
+        "email": "new@example.com",
+        "password": "123456"
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "New Name"
+    assert data["email"] == "new@example.com"
+
+
+def test_delete_user(client):
+    create = client.post("/users/", json={
+        "name": "User Delete",
+        "email": "delete@example.com",
+        "password": "123456"
+    })
+    assert create.status_code == 200
+
+    user_id = create.json()["id"]
+
+    response = client.delete(f"/users/{user_id}")
+    assert response.status_code == 200
+    assert response.json()["message"] == "User deleted successfully"
+
+    login_data = {"email": "delete@example.com", "password": "123456"}
+    login_response = client.post("/auth/login", json=login_data)
+    assert login_response.status_code in [401, 404]

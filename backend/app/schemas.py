@@ -33,6 +33,10 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+    
+class UserUpdate(BaseModel):
+    name: str | None = None
+    email: str | None = None
 
 # =====================
 # TRANSACTION
@@ -65,3 +69,10 @@ class TransactionSummary(BaseModel):
     total_income: float
     total_expenses: float
     balance: float
+    
+class TransactionUpdate(BaseModel):
+    description: str | None = None
+    amount: float | None = None
+    category: str | None = None
+    type: str | None = None
+    date: datetime | None = None
