@@ -818,13 +818,16 @@ function initApp() {
     }
     
     // 3. Configuração Específica de Páginas
-    if (pathname.includes('index.html')) {
+if (document.getElementById('loginForm')) { 
         setupLogin();
-    } else if (pathname.includes('cadastro.html')) {
+    }
+    if (document.getElementById('cadastroForm')) { // Isso garante que o setup é chamado apenas no cadastro.html
         setupCadastro();
-    } else if (requiresAuth) {
+    }
+    
+    if (requiresAuth) {
         // Se a página for protegida E o usuário estiver autenticado:
-        updateProfileInfo(); 
+        updateProfileInfo();
 
         if (pathname.includes('dashboard.html')) {
             renderInitialData(); 
