@@ -818,7 +818,7 @@ function initApp() {
     }
     
     // 3. Configuração Específica de Páginas
-if (document.getElementById('loginForm')) { 
+    if (document.getElementById('loginForm')) { 
         setupLogin();
     }
     if (document.getElementById('cadastroForm')) { // Isso garante que o setup é chamado apenas no cadastro.html
