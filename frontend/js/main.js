@@ -835,48 +835,63 @@ function setupProfilePage() {
 }
 
 // --- FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL ---
-
 function initApp() {
     const pathname = window.location.pathname;
+    
+    // --- 1. Lógica de Login/Cadastro (Páginas Não Protegidas) ---
+
+    // A. Inicializa Cadastro (Se o formulário existir na página)
+    if (document.getElementById('cadastroForm')) { 
+        setupCadastro();
+        // Paramos aqui. Nenhuma lógica de AUTH ou dashboard deve rodar nesta página.
+        return; 
+    }
+    
+    // B. Inicializa Login (Se o formulário existir na página)
+    if (document.getElementById('loginForm')) { 
+        setupLogin();
+        // Paramos aqui. Nenhuma lógica de AUTH ou dashboard deve rodar nesta página.
+        return;
+    }
+    
+    // --- 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados) ---
+
+    // Se não for Login ou Cadastro, presume-se que é uma página protegida ou a index.
+    
     const isAuthenticated = AuthService.getToken();
     
-    let currentUser = AuthService.loadUserData() || {};
-    // 1. Configuração Comum (Disponível em todas as páginas)
-    setupLogout();
-    setupNovaTransacao();
-    setupEditTransacao();
-    setupHistoricoListeners(); 
-
-    // 2. Proteção de Rotas
     const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
     const requiresAuth = protectedPages.some(page => pathname.includes(page));
 
+    // Proteção: Se for página protegida e NÃO autenticado, redireciona.
     if (requiresAuth && !isAuthenticated) {
         window.location.href = 'index.html'; 
         return;
     }
-    
-    // 3. Configuração Específica de Páginas
-    // Inicializa Login e Cadastro verificando a presença dos formulários.
-    if (document.getElementById('loginForm')) { 
-        setupLogin();
-    }
-    if (document.getElementById('cadastroForm')) { 
-        setupCadastro();
-    }
-    
-    if (requiresAuth) {
-        // Se a página for protegida E o usuário estiver autenticado:
-        updateProfileInfo();
 
+    // Se chegamos aqui, ou é a página inicial (não protegida), ou é uma página protegida E o usuário está autenticado.
+    
+    // Configuração Comum (Disponível APENAS em páginas logadas ou se o usuário estiver autenticado)
+    if (isAuthenticated) {
+        let currentUser = AuthService.loadUserData() || {}; // Só carrega se autenticado
+        setupLogout();
+        setupNovaTransacao();
+        setupEditTransacao();
+        setupHistoricoListeners(); 
+        updateProfileInfo(); // Atualiza infos do usuário logado
+    }
+
+
+    // 3. Configuração Específica de Páginas Protegidas
+    if (requiresAuth && isAuthenticated) {
         if (pathname.includes('dashboard.html')) {
             renderInitialData(); 
         } else if (pathname.includes('historico.html')) {
             setupHistoricoFilter(); 
         } else if (pathname.includes('relatorios.html')) {
-             setupRelatoriosFilter();
+            setupRelatoriosFilter();
         } else if (pathname.includes('perfil.html')) {
-             setupProfilePage();
+            setupProfilePage();
         }
     }
 }
