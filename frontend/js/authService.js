@@ -6,7 +6,7 @@ const STORAGE_TOKEN_KEY = 'accessToken';
 export const AuthService = {
     // --- Funções de API ---
 
-    async register(name, email, password) {
+    async registerUser(name, email, password) { // RENOMEADO para registerUser
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -24,20 +24,18 @@ export const AuthService = {
             body: JSON.stringify({ email, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            const data = await response.json();
-            
             AuthService.setToken(data.access_token);
-            // CORREÇÃO: Salva os dados do usuário para uso no frontend (Dashboard, Perfil)
             if (data.user) { 
                 AuthService.saveUserData(data.user);
             }
-            
             return { success: true, data };
         }
 
-        const data = await response.json();
-        return { success: false, message: data.message || "Email ou senha inválidos." };
+        // Retorna o status e a mensagem de erro da API em caso de falha
+        return { success: false, data, status: response.status, message: data.message || "Email ou senha inválidos." };
     },
     
     logout() {
@@ -58,7 +56,6 @@ export const AuthService = {
     },
 
     saveUserData(user) {
-        // Salva apenas os dados essenciais para o frontend
         const { id, name, email, photoURL } = user;
         localStorage.setItem(STORAGE_USER_KEY, JSON.stringify({ id, name, email, photoURL }));
     },
