@@ -8,10 +8,11 @@ export const AuthService = {
 
     async registerUser(name, email, password) { // RENOMEADO para registerUser
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
-        });
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // A função fetch enviará o JSON com as chaves name, email, password
+        body: JSON.stringify(userData) 
+    });
 
         const data = await response.json();
         return { success: response.ok, data, status: response.status };
