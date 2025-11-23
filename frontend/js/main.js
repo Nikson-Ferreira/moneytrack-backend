@@ -1,5 +1,5 @@
 import * as TransactionService from './transactionService.js';
-import * as AuthService from './authService.js';
+import { AuthService } from './authService.js';
 import { 
     formatCurrency, 
     calculateTotals, 
