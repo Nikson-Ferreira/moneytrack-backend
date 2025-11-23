@@ -111,14 +111,11 @@ function setupLogin() {
     }
 }
 
-
 async function handleCadastroSubmit(e) {
     console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
-    e.preventDefault();
     // 1. Impedir o comportamento padrão do navegador (recarregar a página)
-    e.preventDefault();
+    e.preventDefault(); 
 
-    const cadastroForm = document.getElementById('cadastroForm');
     const nomeInput = document.getElementById('nome');
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
@@ -133,7 +130,7 @@ async function handleCadastroSubmit(e) {
     const email = emailInput.value.trim();
     const senha = senhaInput.value;
 
-    // 3. Validação de Frontend Básica (Garantir que os campos não estão vazios)
+    // 3. Validação de Frontend Básica
     let isFormValid = true;
 
     if (!nome) {
@@ -150,15 +147,13 @@ async function handleCadastroSubmit(e) {
     }
 
     if (!isFormValid) {
-        // Se a validação do frontend falhar, parar a execução
         return;
     }
 
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
-        const userData = { nome, email, senha };
+        const userData = { name: nome, email, password: senha }; // Garanta que os nomes das chaves (name, password) são os esperados pela API
         
-        // Chamada à API de Cadastro
         const result = await AuthService.registerUser(userData);
 
         if (result.success) {
@@ -166,24 +161,35 @@ async function handleCadastroSubmit(e) {
             alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
             window.location.href = 'index.html';
 
-        } else if (result.status === 400 && result.data && result.data.detail) {
-            // ERRO 400 (Bad Request): Geralmente email já cadastrado ou validação do backend
+        } else if (result.status === 400) {
+            // ERRO 400 (Bad Request): Tenta extrair a mensagem de erro
             
-            // Exemplo de erro comum do backend: 'User with this email already exists'
-            const errorMessage = result.data.detail.includes('email') 
-                ? 'Este email já está cadastrado.'
-                : 'Erro de validação: Verifique seus dados.';
-                
-            applyBootstrapValidation(emailInput, false, errorMessage);
+            let errorMessage = "Erro de validação: Verifique seus dados."; // Mensagem padrão
+            
+            // Tenta obter a mensagem de erro em diferentes formatos da API (FastAPI "detail" ou genérico "message")
+            if (result.data && result.data.detail) {
+                errorMessage = result.data.detail;
+            } else if (result.data && result.data.message) {
+                errorMessage = result.data.message;
+            }
+            
+            // Verifica se a mensagem de erro contém a palavra 'email' ou 'already exists'
+            if (errorMessage.toLowerCase().includes('email') || errorMessage.toLowerCase().includes('exists') || errorMessage.toLowerCase().includes('já existe')) {
+                applyBootstrapValidation(emailInput, false, 'Este email já está cadastrado ou inválido.');
+            } else if (errorMessage.toLowerCase().includes('senha') || errorMessage.toLowerCase().includes('password')) {
+                applyBootstrapValidation(senhaInput, false, errorMessage);
+            } else {
+                 alert("Erro de Cadastro: " + errorMessage);
+            }
             
         } else {
-            // Outros Erros HTTP (404, 500, etc. que não foram pegos pelo 'catch')
-            alert("Erro desconhecido ao cadastrar usuário. Tente novamente.");
+            // Outros Erros HTTP (401, 500, etc.)
+            alert("Erro inesperado do servidor. Tente novamente.");
             console.error("Erro inesperado da API:", result);
         }
 
     } catch (error) {
-        // 5. Falha de Rede/Servidor (Servidor offline, CORS, ou erro 5xx que não foi tratado explicitamente)
+        // 5. Falha de Rede/Servidor (Servidor inacessível, Timeout, etc.)
         console.error("Falha ao registrar usuário:", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
