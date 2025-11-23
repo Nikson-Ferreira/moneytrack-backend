@@ -112,59 +112,78 @@ function setupLogin() {
 }
 
 
-async function handleCadastroSubmit(e) { 
+async function handleCadastroSubmit(e) {
+    // 1. Impedir o comportamento padrão do navegador (recarregar a página)
     e.preventDefault();
-    const cadastroForm = document.getElementById('cadastroForm');
-    cadastroForm.classList.remove('was-validated');
 
+    const cadastroForm = document.getElementById('cadastroForm');
     const nomeInput = document.getElementById('nome');
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
     
+    // Resetar a validação do Bootstrap em todos os campos
+    applyBootstrapValidation(nomeInput, true);
+    applyBootstrapValidation(emailInput, true);
+    applyBootstrapValidation(senhaInput, true);
+
+    // 2. Coletar dados
     const nome = nomeInput.value.trim();
     const email = emailInput.value.trim();
     const senha = senhaInput.value;
-    
-    let formIsValid = true;
 
-    if (nome.length < 3) {
-        formIsValid = false;
-        applyBootstrapValidation(nomeInput, false, 'O nome deve ter pelo menos 3 caracteres.');
-    } else {
-        applyBootstrapValidation(nomeInput, true);
+    // 3. Validação de Frontend Básica (Garantir que os campos não estão vazios)
+    let isFormValid = true;
+
+    if (!nome) {
+        applyBootstrapValidation(nomeInput, false, 'O nome é obrigatório.');
+        isFormValid = false;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        formIsValid = false;
-        applyBootstrapValidation(emailInput, false, 'Formato de email inválido.');
-    } else {
-        applyBootstrapValidation(emailInput, true);
+    if (!email || !email.includes('@')) {
+        applyBootstrapValidation(emailInput, false, 'Insira um email válido.');
+        isFormValid = false;
     }
-
-    if (senha.length < 6) {
-        formIsValid = false;
+    if (!senha || senha.length < 6) {
         applyBootstrapValidation(senhaInput, false, 'A senha deve ter pelo menos 6 caracteres.');
-    } else {
-        applyBootstrapValidation(senhaInput, true);
+        isFormValid = false;
     }
 
-    if (formIsValid) {
-        try {
-            const result = await AuthService.register(nome, email, senha);
+    if (!isFormValid) {
+        // Se a validação do frontend falhar, parar a execução
+        return;
+    }
 
-            if (result.success) {
-                alert(`Usuário ${nome} cadastrado com sucesso! Redirecionando para o Login.`);
-                window.location.href = 'index.html';
-            } else if (result.status === 400 && result.data.detail) {
-                applyBootstrapValidation(emailInput, false, result.data.detail);
-            } else {
-                alert("Erro ao cadastrar usuário. Tente novamente.");
-            }
-        } catch (error) {
-            console.error("Erro durante o cadastro:", error);
-            alert("Erro de conexão. Tente novamente mais tarde.");
+    // 4. Chamar o Serviço de Autenticação (Backend)
+    try {
+        const userData = { nome, email, senha };
+        
+        // Chamada à API de Cadastro
+        const result = await AuthService.registerUser(userData);
+
+        if (result.success) {
+            // SUCESSO: Cadastro realizado e API retornou 201 Created
+            alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
+            window.location.href = 'index.html';
+
+        } else if (result.status === 400 && result.data && result.data.detail) {
+            // ERRO 400 (Bad Request): Geralmente email já cadastrado ou validação do backend
+            
+            // Exemplo de erro comum do backend: 'User with this email already exists'
+            const errorMessage = result.data.detail.includes('email') 
+                ? 'Este email já está cadastrado.'
+                : 'Erro de validação: Verifique seus dados.';
+                
+            applyBootstrapValidation(emailInput, false, errorMessage);
+            
+        } else {
+            // Outros Erros HTTP (404, 500, etc. que não foram pegos pelo 'catch')
+            alert("Erro desconhecido ao cadastrar usuário. Tente novamente.");
+            console.error("Erro inesperado da API:", result);
         }
+
+    } catch (error) {
+        // 5. Falha de Rede/Servidor (Servidor offline, CORS, ou erro 5xx que não foi tratado explicitamente)
+        console.error("Falha ao registrar usuário:", error);
+        alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
 
@@ -818,10 +837,11 @@ function initApp() {
     }
     
     // 3. Configuração Específica de Páginas
+    // Inicializa Login e Cadastro verificando a presença dos formulários.
     if (document.getElementById('loginForm')) { 
         setupLogin();
     }
-    if (document.getElementById('cadastroForm')) { // Isso garante que o setup é chamado apenas no cadastro.html
+    if (document.getElementById('cadastroForm')) { 
         setupCadastro();
     }
     
@@ -841,5 +861,4 @@ function initApp() {
     }
 }
 
-// Inicializa o aplicativo quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', initApp);
