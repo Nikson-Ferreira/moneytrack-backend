@@ -155,7 +155,8 @@ async function handleCadastroSubmit(e) {
         const userData = { 
             name: nome,      // 'nome' (Português) -> 'name' (Inglês)
             email: email,    // 'email' (Português) -> 'email' (Inglês)
-            password: senha  // 'senha' (Português) -> 'password' (Inglês)
+            password: senha,  // 'senha' (Português) -> 'password' (Inglês)
+            monthly_income: 0
         };
     
         const result = await AuthService.registerUser(userData);
