@@ -110,6 +110,7 @@ function setupLogin() {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 }
+
 async function handleCadastroSubmit(e) {
     console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
     e.preventDefault(); 
@@ -118,7 +119,8 @@ async function handleCadastroSubmit(e) {
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
     
-    // Resetar a validação do Bootstrap em todos os campos
+    // 1. Resetar a validação do Bootstrap em todos os campos
+    // (Presume-se que a função applyBootstrapValidation está definida no seu util.js)
     applyBootstrapValidation(nomeInput, true);
     applyBootstrapValidation(emailInput, true);
     applyBootstrapValidation(senhaInput, true);
@@ -149,34 +151,33 @@ async function handleCadastroSubmit(e) {
     }
 
     // Define userData FORA do try/catch (Escopo CORRETO e chaves da API)
+    // ⚠️ Adiciona monthly_income: 0, que é obrigatório para a API
     const userData = { 
         name: nome, 
         email: email,  
         password: senha, 
-        monthly_income: 0 // Correção do Status 422
+        monthly_income: 0 
     }
     
-    // Removemos 'let result = null' para evitar possível conflito de escopo/referência.
-    // O 'result' será definido DENTRO do try.
+    // Variável declarada aqui para garantir escopo (CORREÇÃO DE ESCOPO FINAL)
+    let result = null; 
     
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
         console.log("DEBUG: Enviando requisição com:", userData); 
-        const result = await AuthService.registerUser(userData); // Definimos 'result' com 'const' aqui
-        
-        // Se a chamada for bem-sucedida, o código continua aqui.
-        
+        result = await AuthService.registerUser(userData); // Atribui valor, mas a variável existe fora
+
         if (result.success) {
             // SUCESSO
             alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
             window.location.href = 'index.html';
 
         } else if (result.status === 400 || result.status === 422) {
-            // ERRO 400/422 (Tratamento de Validação)
+            // ERRO 400/422 (Bad Request/Unprocessable Entity): Tratamento de Validação
             
             let errorMessage = "Erro de validação: Verifique seus dados."; 
             
-            // Prioriza mensagens de erro da API
+            // Prioriza mensagens de erro da API (detail ou message)
             if (result.data && result.data.detail) {
                 errorMessage = result.data.detail;
             } else if (result.data && result.data.message) {
@@ -193,14 +194,14 @@ async function handleCadastroSubmit(e) {
             }
             
         } else {
-            // Outros Erros HTTP
+            // Outros Erros HTTP (401, 500, etc.)
             alert("Erro inesperado do servidor. Tente novamente.");
             console.error("Erro inesperado da API:", result);
         }
 
     } catch (error) {
-        // 5. Falha de Rede/Servidor: Captura a falha de comunicação ou ReferenceError que mata o script.
-        console.error("Falha de comunicação ou erro de execução (possível ReferenceError na linha 200):", error);
+        // 5. Falha de Rede/Servidor (Captura a falha de comunicação ou ReferenceError que mata o script.)
+        console.error("Falha de comunicação ou erro de execução:", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
