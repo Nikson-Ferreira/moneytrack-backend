@@ -70,6 +70,8 @@ async function renderInitialData() {
 // --- AUTENTICAÇÃO E CADASTRO ---
 
 async function handleLoginSubmit(e) { 
+    console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
+    e.preventDefault();
     e.preventDefault();
     const loginForm = document.getElementById('loginForm');
     loginForm.classList.remove('was-validated');
@@ -113,6 +115,8 @@ function setupLogin() {
 
 
 async function handleCadastroSubmit(e) {
+    console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
+    e.preventDefault();
     // 1. Impedir o comportamento padrão do navegador (recarregar a página)
     e.preventDefault();
 
@@ -861,4 +865,4 @@ function initApp() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+window.onload = initApp;
