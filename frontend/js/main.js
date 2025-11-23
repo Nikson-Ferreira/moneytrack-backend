@@ -149,15 +149,15 @@ async function handleCadastroSubmit(e) {
     if (!isFormValid) {
         return;
     }
-
+    const userData = { 
+        name: nome, 
+        email: email,   
+        password: senha,  
+        monthly_income: 0
+    }
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
-        const userData = { 
-            name: nome,      // 'nome' (Português) -> 'name' (Inglês)
-            email: email,    // 'email' (Português) -> 'email' (Inglês)
-            password: senha,  // 'senha' (Português) -> 'password' (Inglês)
-            monthly_income: 0
-        };
+        
     
         const result = await AuthService.registerUser(userData);
 
