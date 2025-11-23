@@ -110,10 +110,8 @@ function setupLogin() {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 }
-
 async function handleCadastroSubmit(e) {
     console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
-    // 1. Impedir o comportamento padrão do navegador (recarregar a página)
     e.preventDefault(); 
 
     const nomeInput = document.getElementById('nome');
@@ -149,42 +147,47 @@ async function handleCadastroSubmit(e) {
     if (!isFormValid) {
         return;
     }
+
+    // Define userData FORA do try/catch (Escopo CORRETO)
     const userData = { 
         name: nome, 
-        email: email,   
-        password: senha,  
-        monthly_income: 0
+        email: email,  
+        password: senha, 
+        monthly_income: 0 // Correção do Status 422
     }
+    
+    // Variável declarada aqui para ser acessível no log final
+    let result = null; 
+    
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
-        
-    
-        const result = await AuthService.registerUser(userData);
+        console.log("DEBUG: Enviando requisição com:", userData); // Log de envio
+        result = await AuthService.registerUser(userData);
 
         if (result.success) {
-            // SUCESSO: Cadastro realizado e API retornou 201 Created
+            // SUCESSO
             alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
             window.location.href = 'index.html';
 
-        } else if (result.status === 400) {
-            // ERRO 400 (Bad Request): Tenta extrair a mensagem de erro
+        } else if (result.status === 400 || result.status === 422) {
+            // ERRO 400/422 (Bad Request/Unprocessable Entity): Tenta extrair a mensagem de erro
             
-            let errorMessage = "Erro de validação: Verifique seus dados."; // Mensagem padrão
+            let errorMessage = "Erro de validação: Verifique seus dados."; 
             
-            // Tenta obter a mensagem de erro em diferentes formatos da API (FastAPI "detail" ou genérico "message")
+            // Prioriza mensagens de erro da API
             if (result.data && result.data.detail) {
                 errorMessage = result.data.detail;
             } else if (result.data && result.data.message) {
                 errorMessage = result.data.message;
             }
             
-            // Verifica se a mensagem de erro contém a palavra 'email' ou 'already exists'
+            // Tratamento de Erro Específico (Email Duplicado/Incorreto)
             if (errorMessage.toLowerCase().includes('email') || errorMessage.toLowerCase().includes('exists') || errorMessage.toLowerCase().includes('já existe')) {
                 applyBootstrapValidation(emailInput, false, 'Este email já está cadastrado ou inválido.');
             } else if (errorMessage.toLowerCase().includes('senha') || errorMessage.toLowerCase().includes('password')) {
                 applyBootstrapValidation(senhaInput, false, errorMessage);
             } else {
-                 alert("Erro de Cadastro: " + errorMessage);
+                alert("Erro de Cadastro: " + errorMessage);
             }
             
         } else {
@@ -194,12 +197,11 @@ async function handleCadastroSubmit(e) {
         }
 
     } catch (error) {
-        // 5. Falha de Rede/Servidor (Servidor inacessível, Timeout, etc.)
-        console.error("Falha ao registrar usuário:", error);
+        // 5. Falha de Rede/Servidor (Servidor inacessível, Timeout, CORS não tratado)
+        console.error("Falha de comunicação ou erro de execução:", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
-
 function setupCadastro() {
     const cadastroForm = document.getElementById('cadastroForm');
     if (cadastroForm) {
