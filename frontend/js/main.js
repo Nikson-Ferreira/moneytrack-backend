@@ -13,8 +13,6 @@ import {
     applyBootstrapValidation
 } from './utils.js';
 
-let currentUser = AuthService.loadUserData() || {};
-
 // --- DASHBOARD E INFORMAÇÕES GERAIS ---
 
 async function renderInitialData() {
@@ -825,6 +823,7 @@ function initApp() {
     const pathname = window.location.pathname;
     const isAuthenticated = AuthService.getToken();
     
+    let currentUser = AuthService.loadUserData() || {};
     // 1. Configuração Comum (Disponível em todas as páginas)
     setupLogout();
     setupNovaTransacao();
