@@ -148,7 +148,7 @@ async function handleCadastroSubmit(e) {
         return;
     }
 
-    // Define userData FORA do try/catch (Escopo CORRETO)
+    // Define userData FORA do try/catch (Escopo CORRETO e chaves da API)
     const userData = { 
         name: nome, 
         email: email,  
@@ -156,21 +156,23 @@ async function handleCadastroSubmit(e) {
         monthly_income: 0 // Correção do Status 422
     }
     
-    // Variável declarada aqui para ser acessível no log final
-    let result = null; 
+    // Removemos 'let result = null' para evitar possível conflito de escopo/referência.
+    // O 'result' será definido DENTRO do try.
     
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
-        console.log("DEBUG: Enviando requisição com:", userData); // Log de envio
-        result = await AuthService.registerUser(userData);
-
+        console.log("DEBUG: Enviando requisição com:", userData); 
+        const result = await AuthService.registerUser(userData); // Definimos 'result' com 'const' aqui
+        
+        // Se a chamada for bem-sucedida, o código continua aqui.
+        
         if (result.success) {
             // SUCESSO
             alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
             window.location.href = 'index.html';
 
         } else if (result.status === 400 || result.status === 422) {
-            // ERRO 400/422 (Bad Request/Unprocessable Entity): Tenta extrair a mensagem de erro
+            // ERRO 400/422 (Tratamento de Validação)
             
             let errorMessage = "Erro de validação: Verifique seus dados."; 
             
@@ -191,17 +193,18 @@ async function handleCadastroSubmit(e) {
             }
             
         } else {
-            // Outros Erros HTTP (401, 500, etc.)
+            // Outros Erros HTTP
             alert("Erro inesperado do servidor. Tente novamente.");
             console.error("Erro inesperado da API:", result);
         }
 
     } catch (error) {
-        // 5. Falha de Rede/Servidor (Servidor inacessível, Timeout, CORS não tratado)
-        console.error("Falha de comunicação ou erro de execução:", error);
+        // 5. Falha de Rede/Servidor: Captura a falha de comunicação ou ReferenceError que mata o script.
+        console.error("Falha de comunicação ou erro de execução (possível ReferenceError na linha 200):", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
+
 function setupCadastro() {
     const cadastroForm = document.getElementById('cadastroForm');
     if (cadastroForm) {
