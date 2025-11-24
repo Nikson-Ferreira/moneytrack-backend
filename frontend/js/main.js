@@ -110,6 +110,58 @@ function setupLogin() {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 }
+function initApp() {
+    const pathname = window.location.pathname;
+    
+    // 1. Lógica de Login/Cadastro (Páginas Não Protegidas)
+
+    if (document.getElementById('cadastroForm')) { 
+        setupCadastro();
+        return; 
+    }
+    
+    if (document.getElementById('loginForm')) { 
+        setupLogin();
+        return;
+    }
+    
+    // 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados)
+
+    const isAuthenticated = AuthService.getToken();
+    
+    const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
+    const requiresAuth = protectedPages.some(page => pathname.includes(page));
+
+    // Proteção: Redireciona se precisa de Auth e não está autenticado.
+    if (requiresAuth && !isAuthenticated) {
+        window.location.href = 'index.html'; 
+        return;
+    }
+
+    // Configuração Comum (Disponível APENAS em páginas logadas)
+    if (isAuthenticated) {
+        let currentUser = AuthService.loadUserData() || {};
+        setupLogout();
+        setupNovaTransacao();
+        setupEditTransacao();
+        setupHistoricoListeners(); 
+        updateProfileInfo(); 
+    }
+
+
+    // 3. Configuração Específica de Páginas Protegidas
+    if (requiresAuth && isAuthenticated) {
+        if (pathname.includes('dashboard.html')) {
+            renderInitialData(); 
+        } else if (pathname.includes('historico.html')) {
+            setupHistoricoFilter(); 
+        } else if (pathname.includes('relatorios.html')) {
+            setupRelatoriosFilter();
+        } else if (pathname.includes('perfil.html')) {
+            setupProfilePage();
+        }
+    }
+}
 
 async function handleCadastroSubmit(e) {
     console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
@@ -120,7 +172,6 @@ async function handleCadastroSubmit(e) {
     const senhaInput = document.getElementById('senha');
     
     // 1. Resetar a validação do Bootstrap em todos os campos
-    // (Presume-se que a função applyBootstrapValidation está definida no seu util.js)
     applyBootstrapValidation(nomeInput, true);
     applyBootstrapValidation(emailInput, true);
     applyBootstrapValidation(senhaInput, true);
@@ -151,7 +202,7 @@ async function handleCadastroSubmit(e) {
     }
 
     // Define userData FORA do try/catch (Escopo CORRETO e chaves da API)
-    // ⚠️ Adiciona monthly_income: 0, que é obrigatório para a API
+    // Adiciona monthly_income: 0, que é obrigatório para a API
     const userData = { 
         name: nome, 
         email: email,  
@@ -205,7 +256,6 @@ async function handleCadastroSubmit(e) {
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
-
 function setupCadastro() {
     const cadastroForm = document.getElementById('cadastroForm');
     if (cadastroForm) {
@@ -838,47 +888,39 @@ function setupProfilePage() {
 function initApp() {
     const pathname = window.location.pathname;
     
-    // --- 1. Lógica de Login/Cadastro (Páginas Não Protegidas) ---
+    // 1. Lógica de Login/Cadastro (Páginas Não Protegidas)
 
-    // A. Inicializa Cadastro (Se o formulário existir na página)
     if (document.getElementById('cadastroForm')) { 
         setupCadastro();
-        // Paramos aqui. Nenhuma lógica de AUTH ou dashboard deve rodar nesta página.
         return; 
     }
     
-    // B. Inicializa Login (Se o formulário existir na página)
     if (document.getElementById('loginForm')) { 
         setupLogin();
-        // Paramos aqui. Nenhuma lógica de AUTH ou dashboard deve rodar nesta página.
         return;
     }
     
-    // --- 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados) ---
+    // 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados)
 
-    // Se não for Login ou Cadastro, presume-se que é uma página protegida ou a index.
-    
     const isAuthenticated = AuthService.getToken();
     
     const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
     const requiresAuth = protectedPages.some(page => pathname.includes(page));
 
-    // Proteção: Se for página protegida e NÃO autenticado, redireciona.
+    // Proteção: Redireciona se precisa de Auth e não está autenticado.
     if (requiresAuth && !isAuthenticated) {
         window.location.href = 'index.html'; 
         return;
     }
 
-    // Se chegamos aqui, ou é a página inicial (não protegida), ou é uma página protegida E o usuário está autenticado.
-    
-    // Configuração Comum (Disponível APENAS em páginas logadas ou se o usuário estiver autenticado)
+    // Configuração Comum (Disponível APENAS em páginas logadas)
     if (isAuthenticated) {
-        let currentUser = AuthService.loadUserData() || {}; // Só carrega se autenticado
+        let currentUser = AuthService.loadUserData() || {};
         setupLogout();
         setupNovaTransacao();
         setupEditTransacao();
         setupHistoricoListeners(); 
-        updateProfileInfo(); // Atualiza infos do usuário logado
+        updateProfileInfo(); 
     }
 
 
