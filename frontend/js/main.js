@@ -171,7 +171,7 @@ async function handleCadastroSubmit(e) {
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
     
-    // 1. Resetar a validação do Bootstrap em todos os campos
+    // 1. Resetaar a validação do Bootstrap em todos os campos
     applyBootstrapValidation(nomeInput, true);
     applyBootstrapValidation(emailInput, true);
     applyBootstrapValidation(senhaInput, true);
@@ -202,15 +202,14 @@ async function handleCadastroSubmit(e) {
     }
 
     // Define userData FORA do try/catch
-    // Adiciona monthly_income: 0, que é obrigatório para a API
     const userData = { 
         name: nome, 
         email: email,  
         password: senha, 
-        monthly_income: 0 
+        monthly_income: 0 // Campo obrigatório
     }
     
-    // Variável declarada aqui para garantir escopo (solução para ReferenceError)
+    // Variável declarada aqui para garantir escopo
     let result = null; 
     
     // 4. Chamar o Serviço de Autenticação (Backend)
@@ -258,11 +257,18 @@ async function handleCadastroSubmit(e) {
 }
 
 function setupCadastro() {
-    const cadastroForm = document.getElementById('cadastroForm');
-    if (cadastroForm) {
-        cadastroForm.addEventListener('submit', handleCadastroSubmit);
+    const form = document.getElementById('cadastroForm');
+    if (form) {
+        // Remove qualquer listener antigo para evitar duplicação
+        form.removeEventListener('submit', handleCadastroSubmit);
+        // Adiciona o listener no formulário, garantindo que o e.preventDefault() será chamado
+        form.addEventListener('submit', handleCadastroSubmit);
+        console.log("SUCESSO: Listener de submit adicionado ao formulário 'cadastroForm'.");
+    } else {
+        console.error("ERRO CRÍTICO: Não foi encontrado o formulário com ID 'cadastroForm'. O formulário não irá funcionar.");
     }
 }
+
 
 // --- CRUD: NOVA TRANSAÇÃO ---
 
