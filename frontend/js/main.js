@@ -201,7 +201,7 @@ async function handleCadastroSubmit(e) {
         return;
     }
 
-    // Define userData FORA do try/catch (Escopo CORRETO e chaves da API)
+    // Define userData FORA do try/catch
     // Adiciona monthly_income: 0, que é obrigatório para a API
     const userData = { 
         name: nome, 
@@ -210,13 +210,13 @@ async function handleCadastroSubmit(e) {
         monthly_income: 0 
     }
     
-    // Variável declarada aqui para garantir escopo (CORREÇÃO DE ESCOPO FINAL)
+    // Variável declarada aqui para garantir escopo (solução para ReferenceError)
     let result = null; 
     
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
         console.log("DEBUG: Enviando requisição com:", userData); 
-        result = await AuthService.registerUser(userData); // Atribui valor, mas a variável existe fora
+        result = await AuthService.registerUser(userData);
 
         if (result.success) {
             // SUCESSO
@@ -224,11 +224,11 @@ async function handleCadastroSubmit(e) {
             window.location.href = 'index.html';
 
         } else if (result.status === 400 || result.status === 422) {
-            // ERRO 400/422 (Bad Request/Unprocessable Entity): Tratamento de Validação
+            // ERRO 400/422 (Tratamento de Validação)
             
             let errorMessage = "Erro de validação: Verifique seus dados."; 
             
-            // Prioriza mensagens de erro da API (detail ou message)
+            // Prioriza mensagens de erro da API
             if (result.data && result.data.detail) {
                 errorMessage = result.data.detail;
             } else if (result.data && result.data.message) {
@@ -245,17 +245,18 @@ async function handleCadastroSubmit(e) {
             }
             
         } else {
-            // Outros Erros HTTP (401, 500, etc.)
+            // Outros Erros HTTP
             alert("Erro inesperado do servidor. Tente novamente.");
             console.error("Erro inesperado da API:", result);
         }
 
     } catch (error) {
-        // 5. Falha de Rede/Servidor (Captura a falha de comunicação ou ReferenceError que mata o script.)
+        // 5. Falha de Rede/Servidor
         console.error("Falha de comunicação ou erro de execução:", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
+
 function setupCadastro() {
     const cadastroForm = document.getElementById('cadastroForm');
     if (cadastroForm) {
@@ -890,11 +891,13 @@ function initApp() {
     
     // 1. Lógica de Login/Cadastro (Páginas Não Protegidas)
 
+    // Se estiver na página de Cadastro, executa o setup e ENCERRA. (CORREÇÃO CRÍTICA)
     if (document.getElementById('cadastroForm')) { 
         setupCadastro();
         return; 
     }
     
+    // Se estiver na página de Login, executa o setup e ENCERRA. (CORREÇÃO CRÍTICA)
     if (document.getElementById('loginForm')) { 
         setupLogin();
         return;
@@ -902,6 +905,8 @@ function initApp() {
     
     // 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados)
 
+    // A partir daqui, SÓ executamos se NÃO for a página de Login ou Cadastro.
+    
     const isAuthenticated = AuthService.getToken();
     
     const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
