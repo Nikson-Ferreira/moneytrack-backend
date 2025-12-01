@@ -29,15 +29,20 @@ export function saveCategories(categories) {
 }
 
 export function getCategories() {
+    console.log('[GET-CATEGORIES] Buscando categorias do localStorage...');
     const categoriesJson = localStorage.getItem(STORAGE_CATEGORIES_KEY);
     const defaults = getDefaultCategories();
+    
+    console.log('[GET-CATEGORIES] Categorias padrão:', defaults.length);
 
     if (!categoriesJson) {
+        console.log('[GET-CATEGORIES] Nenhuma categoria salva, usando padrões');
         saveCategories(defaults);
         return defaults;
     }
 
     let categories = JSON.parse(categoriesJson);
+    console.log('[GET-CATEGORIES] Categorias carregadas do localStorage:', categories.length);
 
     // Garante que as categorias salvas tenham ícones, usando defaults como fallback
     categories = categories.map(cat => {
@@ -49,6 +54,7 @@ export function getCategories() {
     });
 
     saveCategories(categories);
+    console.log('[GET-CATEGORIES] Retornando', categories.length, 'categorias');
     return categories;
 }
 
@@ -116,21 +122,31 @@ export function applyBootstrapValidation(inputElement, isValid, feedbackMessage 
 // --- Funções de Cálculo ---
 
 export function calculateTotals(transactions) {
+    console.log('[CALCULATE-TOTALS] Calculando totais para', transactions.length, 'transações');
+    
     let saldo = 0;
     let receita = 0;
     let despesa = 0;
 
-    transactions.forEach(t => {
-        const valor = parseFloat(t.valor); 
-        if (t.tipo === 'receita') {
+    transactions.forEach((t, index) => {
+        // Suporta tanto formato português quanto inglês
+        const valor = parseFloat(t.valor || t.amount || 0);
+        const tipo = t.tipo || (t.type === 'income' ? 'receita' : t.type === 'expense' ? 'despesa' : '');
+        
+        if (index === 0) {
+            console.log('[CALCULATE-TOTALS] Exemplo de transação:', { valor, tipo, original: t });
+        }
+        
+        if (tipo === 'receita') {
             saldo += valor;
             receita += valor;
-        } else if (t.tipo === 'despesa') {
+        } else if (tipo === 'despesa') {
             saldo -= valor;
             despesa += valor;
         }
     });
 
+    console.log('[CALCULATE-TOTALS] Resultado:', { saldo, receita, despesa });
     return { saldo, receita, despesa };
 }
 
@@ -140,12 +156,28 @@ export function filterDashboardTransactions(transactions) {
     
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 6);
-    sevenDaysAgo.setHours(0, 0, 0, 0); 
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    console.log('[FILTER-DASHBOARD] Filtrando transações dos últimos 7 dias');
+    console.log('[FILTER-DASHBOARD] Período:', sevenDaysAgo.toLocaleDateString(), 'até', today.toLocaleDateString());
 
-    return transactions.filter(t => {
-        const transactionDate = new Date(t.data + 'T00:00:00');
-        return transactionDate >= sevenDaysAgo && transactionDate <= today;
+    const filtered = transactions.filter(t => {
+        // Suporta tanto 'data' quanto 'date'
+        const dataStr = t.data || t.date;
+        let transactionDate;
+        
+        if (dataStr.includes('T')) {
+            transactionDate = new Date(dataStr);
+        } else {
+            transactionDate = new Date(dataStr + 'T00:00:00');
+        }
+        
+        const isInRange = transactionDate >= sevenDaysAgo && transactionDate <= today;
+        return isInRange;
     });
+    
+    console.log('[FILTER-DASHBOARD] Transações filtradas:', filtered.length, 'de', transactions.length);
+    return filtered;
 }
 
 export function calculateTimeBasedData(transactions, periode, numPeriods) {
@@ -159,56 +191,98 @@ export function calculateTimeBasedData(transactions, periode, numPeriods) {
     let getPeriodLabel;
     
     if (periode === 'dia') {
-        getPeriodKey = (date) => date.toISOString().split('T')[0];
-        getPeriodLabel = (date) => date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        getPeriodKey = (date) => {
+            if (!date || isNaN(date.getTime())) return null;
+            return date.toISOString().split('T')[0];
+        };
+        getPeriodLabel = (date) => {
+            if (!date || isNaN(date.getTime())) return 'Data inválida';
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        };
     } else if (periode === 'semana') {
-        getPeriodKey = (date) => `${date.getFullYear()}-${Math.ceil((date.getMonth() * 30 + date.getDate()) / 7)}`; // Simplificado
-        getPeriodLabel = (date) => `Semana ${getPeriodKey(date).split('-')[1]}`;
+        getPeriodKey = (date) => {
+            if (!date || isNaN(date.getTime())) return null;
+            return `${date.getFullYear()}-${Math.ceil((date.getMonth() * 30 + date.getDate()) / 7)}`;
+        };
+        getPeriodLabel = (date) => {
+            if (!date || isNaN(date.getTime())) return 'Data inválida';
+            const key = getPeriodKey(date);
+            return key ? `Semana ${key.split('-')[1]}` : 'Data inválida';
+        };
     } else if (periode === 'mes') {
-        getPeriodKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        getPeriodLabel = (date) => date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+        getPeriodKey = (date) => {
+            if (!date || isNaN(date.getTime())) return null;
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        };
+        getPeriodLabel = (date) => {
+            if (!date || isNaN(date.getTime())) return 'Data inválida';
+            return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+        };
     } else if (periode === 'ano') {
-        getPeriodKey = (date) => `${date.getFullYear()}`;
-        getPeriodLabel = (date) => `${date.getFullYear()}`;
+        getPeriodKey = (date) => {
+            if (!date || isNaN(date.getTime())) return null;
+            return `${date.getFullYear()}`;
+        };
+        getPeriodLabel = (date) => {
+            if (!date || isNaN(date.getTime())) return 'Data inválida';
+            return `${date.getFullYear()}`;
+        };
     }
 
     // Inicializa o mapa com os períodos
-    let currentStartDate = new Date(today);
     let periods = [];
     
     for (let i = 0; i < numPeriods; i++) {
-        // Ajuste o currentStartDate com base no período
-        let periodDate = new Date(currentStartDate);
+        let periodDate = new Date(today);
         
-        if (periode === 'dia' || periode === 'semana') {
-             // Mantemos a data de início para o loop
+        if (periode === 'dia') {
+            periodDate.setDate(today.getDate() - (numPeriods - 1 - i));
+        } else if (periode === 'semana') {
+            periodDate.setDate(today.getDate() - (numPeriods - 1 - i) * 7);
         } else if (periode === 'mes') {
-            periodDate.setMonth(today.getMonth() - (numPeriods - 1 - i));
-            periodDate.setDate(1); // Início do mês
+            periodDate = new Date(today.getFullYear(), today.getMonth() - (numPeriods - 1 - i), 1);
         } else if (periode === 'ano') {
-            periodDate.setFullYear(today.getFullYear() - (numPeriods - 1 - i));
-            periodDate.setMonth(0, 1); // Início do ano
+            periodDate = new Date(today.getFullYear() - (numPeriods - 1 - i), 0, 1);
         }
 
         const key = getPeriodKey(periodDate);
-        periods.push(key);
-        totalsMap[key] = { receita: 0, despesa: 0, label: getPeriodLabel(periodDate) };
+        if (key) {
+            periods.push(key);
+            totalsMap[key] = { receita: 0, despesa: 0, label: getPeriodLabel(periodDate) };
+        }
     }
     data.periods = periods.map(key => totalsMap[key].label);
 
     // Processa as transações
     transactions.forEach(t => {
-        const transactionDate = new Date(t.data + 'T00:00:00');
-        const key = getPeriodKey(transactionDate);
-        const valor = parseFloat(t.valor);
-        
-        // Verifica se a transação está dentro dos períodos que inicializamos
-        if (totalsMap[key]) {
-            if (t.tipo === 'receita') {
-                totalsMap[key].receita += valor;
-            } else if (t.tipo === 'despesa') {
-                totalsMap[key].despesa += valor;
+        try {
+            // Tenta criar a data de diferentes formas
+            let transactionDate;
+            if (t.data.includes('T')) {
+                transactionDate = new Date(t.data);
+            } else {
+                transactionDate = new Date(t.data + 'T00:00:00');
             }
+            
+            // Verifica se a data é válida
+            if (isNaN(transactionDate.getTime())) {
+                console.warn('[UTILS] Data inválida na transação:', t);
+                return;
+            }
+            
+            const key = getPeriodKey(transactionDate);
+            const valor = parseFloat(t.valor);
+            
+            // Verifica se a transação está dentro dos períodos que inicializamos
+            if (key && totalsMap[key]) {
+                if (t.tipo === 'receita') {
+                    totalsMap[key].receita += valor;
+                } else if (t.tipo === 'despesa') {
+                    totalsMap[key].despesa += valor;
+                }
+            }
+        } catch (error) {
+            console.error('[UTILS] Erro ao processar transação:', t, error);
         }
     });
 

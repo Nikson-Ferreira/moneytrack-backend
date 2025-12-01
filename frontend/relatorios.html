@@ -118,49 +118,22 @@
       </div>
 
       <ul class="list-group list-group-flush mb-4">
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          Gerenciar Categorias
-          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGerenciarCategorias">
-            <i class="bi bi-list-task"></i>
-          </button>
-        </li>
         <li class="list-group-item">
-          <a href="index.html" class="btn btn-danger btn-sm w-100">
-            <i class="bi bi-box-arrow-right me-2"></i> Sair
+          <a href="gerenciar_categorias.html" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-tags me-2"></i> Gerenciar Categorias
           </a>
         </li>
+        <li class="list-group-item">
+          <a href="ferramentas.html" class="btn btn-outline-info btn-sm w-100">
+            <i class="bi bi-tools me-2"></i> Ferramentas
+          </a>
+        </li>
+        <li class="list-group-item">
+          <button id="logoutBtn" class="btn btn-danger btn-sm w-100">
+            <i class="bi bi-box-arrow-right me-2"></i> Sair
+          </button>
+        </li>
       </ul>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalGerenciarCategorias" tabindex="-1" aria-labelledby="modalGerenciarCategoriasLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalGerenciarCategoriasLabel">Gerenciar Categorias</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formNovaCategoria" class="mb-3" novalidate>
-            <div class="input-group mb-2 form-validation-group">
-              <input type="text" id="novaCategoriaNome" class="form-control" placeholder="Nome da nova categoria" required>
-              <select id="novaCategoriaTipo" class="form-select" style="max-width: 120px;" required>
-                <option value="" disabled selected>Tipo</option>
-                <option value="receita">Receita</option>
-                <option value="despesa">Despesa</option>
-              </select>
-              <button class="btn btn-outline-primary" type="submit">Adicionar</button>
-              <div class="invalid-feedback">Preencha o nome e selecione o tipo.</div>
-            </div>
-            <p class="text-muted small">As categorias padrão não podem ser excluídas.</p>
-          </form>
-          <h6>Categorias Atuais:</h6>
-          <ul class="list-group" id="categoryList"></ul>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -169,7 +142,7 @@
       <a class="nav-link-app" href="dashboard.html"><i class="bi bi-house-door fs-5"></i> Dashboard</a>
       <a class="nav-link-app" href="historico.html"><i class="bi bi-list-columns fs-5"></i> Histórico</a>
       <a class="nav-link-app active" href="relatorios.html"><i class="bi bi-pie-chart fs-5"></i> Relatórios</a>
-      <a class="nav-link-app" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPerfil"><i class="bi bi-person fs-5"></i> Perfil</a>
+      <a class="nav-link-app" href="ferramentas.html"><i class="bi bi-tools fs-5"></i> Ferramentas</a>
     </div>
   </nav>
 

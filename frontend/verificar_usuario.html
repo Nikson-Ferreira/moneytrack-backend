@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Usuário - MoneyTrack</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificar Informações do Usuário</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Informação:</strong> Esta ferramenta mostra informações sobre o usuário logado
+            e suas transações.
+        </div>
+
+        <button onclick="verificarUsuario()">Verificar Usuário</button>
+        <button onclick="verificarTransacoes()">Verificar Transações</button>
+        <button onclick="voltarDashboard()">Voltar ao Dashboard</button>
+
+        <div id="logConsole" class="log"></div>
+    </div>
+
+    <script type="module">
+        const API_BASE_URL = "https://moneytrack-backend.onrender.com";
+        
+        function log(message, color = '#0f0') {
+            const logConsole = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.style.color = color;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            console.log(message);
+        }
+
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+
+        window.verificarUsuario = function() {
+            log('=== INFORMAÇÕES DO USUÁRIO ===', '#fff');
+            
+            const token = getToken();
+            const user = JSON.parse(localStorage.getItem('moneyTrackUser') || '{}');
+            
+            log(`Token: ${token ? token.substring(0, 20) + '...' : 'NÃO ENCONTRADO'}`, token ? '#0f0' : '#f00');
+            log(`ID: ${user.id || 'N/A'}`, '#fff');
+            log(`Nome: ${user.name || 'N/A'}`, '#fff');
+            log(`Email: ${user.email || 'N/A'}`, '#fff');
+            log(`Foto: ${user.photoURL ? 'Configurada' : 'Não configurada'}`, '#fff');
+            
+            if (!token) {
+                log('\n⚠️ Você não está logado!', '#f00');
+                log('Faça login primeiro', '#ff0');
+            }
+        }
+
+        window.verificarTransacoes = async function() {
+            log('\n=== TRANSAÇÕES DO USUÁRIO ===', '#fff');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    log(`ERRO: Status ${response.status}`, '#f00');
+                    if (response.status === 401) {
+                        log('Token inválido ou expirado. Faça login novamente.', '#f00');
+                    }
+                    return;
+                }
+
+                const transactions = await response.json();
+                log(`Total de transações: ${transactions.length}`, '#fff');
+
+                if (transactions.length === 0) {
+                    log('\nNenhuma transação encontrada!', '#ff0');
+                    log('Use a ferramenta "Criar Transações de Teste" para adicionar dados', '#ff0');
+                    return;
+                }
+
+                log('\nLista de transações:', '#fff');
+                transactions.forEach((t, index) => {
+                    const dataObj = new Date(t.date);
+                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                    const tipo = t.type === 'income' ? 'RECEITA' : 'DESPESA';
+                    const cor = t.type === 'income' ? '#0f0' : '#f00';
+                    
+                    log(`${index + 1}. [${tipo}] ${t.description} - R$ ${t.amount.toFixed(2)}`, cor);
+                    log(`   Categoria: ${t.category} | Data: ${dataFormatada}`, '#fff');
+                });
+
+                const receitas = transactions.filter(t => t.type === 'income');
+                const despesas = transactions.filter(t => t.type === 'expense');
+                const totalReceitas = receitas.reduce((sum, t) => sum + t.amount, 0);
+                const totalDespesas = despesas.reduce((sum, t) => sum + t.amount, 0);
+                const saldo = totalReceitas - totalDespesas;
+
+                log('\n=== RESUMO ===', '#fff');
+                log(`Total de Receitas: R$ ${totalReceitas.toFixed(2)}`, '#0f0');
+                log(`Total de Despesas: R$ ${totalDespesas.toFixed(2)}`, '#f00');
+                log(`Saldo: R$ ${saldo.toFixed(2)}`, saldo >= 0 ? '#0f0' : '#f00');
+
+            } catch (error) {
+                log(`ERRO: ${error.message}`, '#f00');
+            }
+        }
+
+        window.voltarDashboard = function() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Log inicial
+        log('Ferramenta de verificação carregada', '#fff');
+        log('Clique em "Verificar Usuário" para ver suas informações', '#fff');
+    </script>
+</body>
+</html>

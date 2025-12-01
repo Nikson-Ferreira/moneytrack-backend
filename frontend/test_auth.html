@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Autenticação - MoneyTrack</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #44ff44;
+        }
+        .info {
+            color: #4444ff;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Autenticação - MoneyTrack</h1>
+        
+        <div class="test-section">
+            <h2>1. Teste de Conexão com API</h2>
+            <button onclick="testConnection()">Testar Conexão</button>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Teste de Registro</h2>
+            <input type="text" id="regName" placeholder="Nome" value="Teste Usuario">
+            <input type="email" id="regEmail" placeholder="Email" value="">
+            <input type="password" id="regPassword" placeholder="Senha" value="senha123">
+            <button onclick="testRegister()">Registrar Usuário</button>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Teste de Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email" value="">
+            <input type="password" id="loginPassword" placeholder="Senha" value="senha123">
+            <button onclick="testLogin()">Fazer Login</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Console de Logs</h2>
+            <button onclick="clearLogs()">Limpar Logs</button>
+            <div id="logConsole" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        const API_BASE_URL = "https://moneytrack-backend.onrender.com";
+        
+        function log(message, type = 'info') {
+            const logConsole = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            console.log(message);
+        }
+
+        window.clearLogs = function() {
+            document.getElementById('logConsole').innerHTML = '';
+        }
+
+        window.testConnection = async function() {
+            log('Testando conexão com API...', 'info');
+            log(`URL: ${API_BASE_URL}`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✓ Conexão bem-sucedida! Status: ${response.status}`, 'success');
+                    log(`Resposta: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    log(`✗ Erro na conexão. Status: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`✗ ERRO: ${error.message}`, 'error');
+            }
+        }
+
+        window.testRegister = async function() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value || `teste${Date.now()}@example.com`;
+            const password = document.getElementById('regPassword').value;
+
+            document.getElementById('regEmail').value = email;
+            document.getElementById('loginEmail').value = email;
+
+            log('Iniciando teste de registro...', 'info');
+            log(`Nome: ${name}`, 'info');
+            log(`Email: ${email}`, 'info');
+            log(`Senha: ${'*'.repeat(password.length)}`, 'info');
+
+            const userData = {
+                name: name,
+                email: email,
+                password: password,
+                monthly_income: 0
+            };
+
+            log(`Enviando requisição para: ${API_BASE_URL}/auth/register`, 'info');
+            log(`Dados: ${JSON.stringify(userData)}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                log(`Status da resposta: ${response.status}`, 'info');
+                
+                const data = await response.json();
+                log(`Resposta: ${JSON.stringify(data)}`, 'info');
+
+                if (response.ok) {
+                    log('✓ Registro bem-sucedido!', 'success');
+                } else {
+                    log(`✗ Erro no registro: ${data.detail || data.message || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                log(`✗ ERRO CRÍTICO: ${error.message}`, 'error');
+            }
+        }
+
+        window.testLogin = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            log('Iniciando teste de login...', 'info');
+            log(`Email: ${email}`, 'info');
+            log(`Senha: ${'*'.repeat(password.length)}`, 'info');
+
+            const loginData = {
+                email: email,
+                password: password
+            };
+
+            log(`Enviando requisição para: ${API_BASE_URL}/auth/login`, 'info');
+            log(`Dados: ${JSON.stringify(loginData)}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                log(`Status da resposta: ${response.status}`, 'info');
+                
+                const data = await response.json();
+                log(`Resposta: ${JSON.stringify(data)}`, 'info');
+
+                if (response.ok) {
+                    log('✓ Login bem-sucedido!', 'success');
+                    log(`Token: ${data.access_token.substring(0, 20)}...`, 'success');
+                    log(`Usuário: ${JSON.stringify(data.user)}`, 'success');
+                } else {
+                    log(`✗ Erro no login: ${data.detail || data.message || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                log(`✗ ERRO CRÍTICO: ${error.message}`, 'error');
+            }
+        }
+
+        // Log inicial
+        log('Sistema de teste carregado', 'success');
+        log(`API URL: ${API_BASE_URL}`, 'info');
+    </script>
+</body>
+</html>

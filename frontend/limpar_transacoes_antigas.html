@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpar Transações Antigas - MoneyTrack</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #dc3545;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #c82333;
+        }
+        button.success {
+            background: #28a745;
+        }
+        button.success:hover {
+            background: #218838;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Limpar Transações com Datas Inválidas</h1>
+        
+        <div class="warning">
+            <strong>⚠️ ATENÇÃO:</strong> Esta ferramenta irá deletar TODAS as transações com datas anteriores a 1 ano atrás.
+            Esta ação não pode ser desfeita!
+        </div>
+
+        <div class="info">
+            <strong>ℹ️ Banco de Dados:</strong> Você está usando o banco REMOTO (Render.com).
+            Esta ferramenta só pode deletar SUAS transações. Transações de outros usuários retornarão erro 404 (normal).
+        </div>
+
+        <div class="info">
+            <strong>💡 Dica:</strong> Transações com datas muito antigas (como 2002) causam problemas nos gráficos.
+            Esta ferramenta remove essas transações para que o sistema funcione corretamente.
+        </div>
+
+        <button onclick="listarTransacoes()">1. Listar Transações</button>
+        <button onclick="limparTransacoesAntigas()" style="background: #dc3545;">2. Limpar Transações Antigas</button>
+        <button onclick="voltarDashboard()" class="success">Voltar ao Dashboard</button>
+
+        <div id="logConsole" class="log"></div>
+    </div>
+
+    <script type="module">
+        const API_BASE_URL = "https://moneytrack-backend.onrender.com";
+        
+        function log(message, color = '#0f0') {
+            const logConsole = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.style.color = color;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            console.log(message);
+        }
+
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+
+        window.listarTransacoes = async function() {
+            log('Buscando transações...', '#fff');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    log(`ERRO: Status ${response.status}`, '#f00');
+                    if (response.status === 401) {
+                        log('Token inválido ou expirado. Faça login novamente.', '#f00');
+                    }
+                    return;
+                }
+
+                const transactions = await response.json();
+                log(`Total de transações: ${transactions.length}`, '#fff');
+
+                if (transactions.length === 0) {
+                    log('Nenhuma transação encontrada!', '#ff0');
+                    return;
+                }
+
+                const umAnoAtras = new Date();
+                umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
+
+                let antigasCount = 0;
+                transactions.forEach(t => {
+                    const dataTransacao = new Date(t.date);
+                    const isAntiga = dataTransacao < umAnoAtras;
+                    
+                    if (isAntiga) {
+                        antigasCount++;
+                        log(`  [ANTIGA] ID: ${t.id} | ${t.description} | ${t.date} | Categoria: ${t.category}`, '#ff0');
+                    } else {
+                        log(`  [OK] ID: ${t.id} | ${t.description} | ${t.date} | Categoria: ${t.category}`, '#0f0');
+                    }
+                });
+
+                log(`\nTransações antigas (>1 ano): ${antigasCount}`, '#fff');
+                log(`Transações recentes: ${transactions.length - antigasCount}`, '#fff');
+
+            } catch (error) {
+                log(`ERRO: ${error.message}`, '#f00');
+            }
+        }
+
+        window.limparTransacoesAntigas = async function() {
+            if (!confirm('Tem certeza que deseja deletar TODAS as transações com mais de 1 ano?\n\n⚠️ ATENÇÃO:\n- Apenas SUAS transações serão deletadas\n- Transações de outros usuários retornarão erro 404 (normal)\n- Esta ação não pode ser desfeita!')) {
+                log('Operação cancelada pelo usuário', '#ff0');
+                return;
+            }
+
+            log('Iniciando limpeza...', '#fff');
+            log('⚠️ Usando banco REMOTO - Apenas suas transações serão deletadas', '#ff0');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            try {
+                // Buscar transações
+                const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    log(`ERRO: Status ${response.status}`, '#f00');
+                    return;
+                }
+
+                const transactions = await response.json();
+                const umAnoAtras = new Date();
+                umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
+
+                const transacoesAntigas = transactions.filter(t => {
+                    const dataTransacao = new Date(t.date);
+                    return dataTransacao < umAnoAtras;
+                });
+
+                log(`Encontradas ${transacoesAntigas.length} transações antigas`, '#fff');
+
+                let deletadas = 0;
+                let erros = 0;
+
+                for (const t of transacoesAntigas) {
+                    try {
+                        log(`Tentando deletar ID ${t.id}: ${t.description}...`, '#fff');
+                        
+                        const deleteResponse = await fetch(`${API_BASE_URL}/transactions/${t.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (deleteResponse.status === 204 || deleteResponse.ok) {
+                            deletadas++;
+                            log(`✓ Deletada: ${t.description} (${t.date})`, '#0f0');
+                        } else if (deleteResponse.status === 404) {
+                            erros++;
+                            log(`✗ Transação ID ${t.id} não encontrada (já foi deletada ou não pertence a você)`, '#ff0');
+                        } else {
+                            erros++;
+                            const errorText = await deleteResponse.text().catch(() => '');
+                            log(`✗ Erro ao deletar ID ${t.id}: Status ${deleteResponse.status} - ${errorText}`, '#f00');
+                        }
+                    } catch (error) {
+                        erros++;
+                        log(`✗ Erro ao deletar ID ${t.id}: ${error.message}`, '#f00');
+                    }
+                }
+
+                log(`\n=== RESULTADO ===`, '#fff');
+                log(`Deletadas: ${deletadas}`, '#0f0');
+                log(`Erros: ${erros}`, erros > 0 ? '#f00' : '#0f0');
+                log(`\nLimpeza concluída!`, '#fff');
+                
+                if (erros > 0) {
+                    log('\n💡 Erros 404 são normais - transações de outros usuários', '#ff0');
+                }
+
+                if (deletadas > 0) {
+                    log('\n✓ Recarregue o dashboard para ver as mudanças', '#0f0');
+                } else if (erros > 0) {
+                    log('\n⚠️ Nenhuma transação sua foi deletada', '#ff0');
+                    log('As transações antigas pertencem a outros usuários', '#ff0');
+                }
+
+            } catch (error) {
+                log(`ERRO: ${error.message}`, '#f00');
+            }
+        }
+
+        window.voltarDashboard = function() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Log inicial
+        log('Ferramenta de limpeza carregada', '#fff');
+        log('Clique em "1. Listar Transações" para ver suas transações', '#fff');
+    </script>
+</body>
+</html>

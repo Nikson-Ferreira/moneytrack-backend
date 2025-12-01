@@ -24,6 +24,10 @@
   </div>
     </header>
 
+    <button class="btn btn-success position-fixed rounded-circle shadow" style="width: 60px; height: 60px; bottom: 80px; right: 20px; z-index: 2000;" data-bs-toggle="modal" data-bs-target="#modalNovaTransacao">
+        <i class="bi bi-plus fs-3"></i>
+    </button>
+
     <main class="container py-3" id="historico-content">
         <div class="mb-3">
             <label for="buscaCategoria" class="form-label visually-hidden">Filtrar por Categoria</label>
@@ -33,6 +37,56 @@
         </div>
         <div id="historico-list"></div>
     </main>
+
+    <div class="modal fade" id="modalNovaTransacao" tabindex="-1" aria-labelledby="modalNovaTransacaoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalNovaTransacaoLabel">Adicionar Nova Transação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formNovaTransacao" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="tipoTransacao" id="tipoReceita" value="receita" autocomplete="off" checked>
+                                <label class="btn btn-outline-success" for="tipoReceita"><i class="bi bi-arrow-up-circle me-1"></i> Receita</label>
+                                <input type="radio" class="btn-check" name="tipoTransacao" id="tipoDespesa" value="despesa" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="tipoDespesa"><i class="bi bi-arrow-down-circle me-1"></i> Despesa</label>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-validation-group">
+                            <label for="valorTransacao" class="form-label">Valor (R$)</label>
+                            <input type="number" class="form-control" id="valorTransacao" placeholder="Ex: 1.000,00" step="0.01" required>
+                            <div class="invalid-feedback">O valor deve ser positivo.</div>
+                        </div>
+                        <div class="mb-3 form-validation-group">
+                            <label for="descricaoTransacao" class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="descricaoTransacao" placeholder="Ex: Pagamento de aluguel" required>
+                            <div class="invalid-feedback">A descrição é obrigatória.</div>
+                        </div>
+                        <div class="mb-3 form-validation-group">
+                            <label for="categoriaTransacao" class="form-label">Categoria</label>
+                            <select class="form-select" id="categoriaTransacao" required>
+                                <option selected disabled value="">Selecione a Categoria</option>
+                            </select>
+                            <div class="invalid-feedback">Selecione uma categoria.</div>
+                        </div>
+                        <div class="mb-3 form-validation-group">
+                            <label for="dataTransacao" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="dataTransacao" required>
+                            <div class="invalid-feedback">A data é obrigatória.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Transação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="modalEditarTransacao" tabindex="-1" aria-labelledby="modalEditarTransacaoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -104,49 +158,22 @@
                 <p class="text-muted small perfil-email"></p>
             </div>
             <ul class="list-group list-group-flush mb-4">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    Gerenciar Categorias
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGerenciarCategorias">
-                        <i class="bi bi-list-task"></i>
-                    </button>
-                </li>
                 <li class="list-group-item">
-                    <a href="index.html" class="btn btn-danger btn-sm w-100">
-                        <i class="bi bi-box-arrow-right me-2"></i> Sair
+                    <a href="gerenciar_categorias.html" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-tags me-2"></i> Gerenciar Categorias
                     </a>
                 </li>
+                <li class="list-group-item">
+                    <a href="ferramentas.html" class="btn btn-outline-info btn-sm w-100">
+                        <i class="bi bi-tools me-2"></i> Ferramentas
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <button id="logoutBtn" class="btn btn-danger btn-sm w-100">
+                        <i class="bi bi-box-arrow-right me-2"></i> Sair
+                    </button>
+                </li>
             </ul>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalGerenciarCategorias" tabindex="-1" aria-labelledby="modalGerenciarCategoriasLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalGerenciarCategoriasLabel">Gerenciar Categorias</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formNovaCategoria" class="mb-3" novalidate>
-                        <div class="input-group mb-2 form-validation-group">
-                            <input type="text" id="novaCategoriaNome" class="form-control" placeholder="Nome da nova categoria" required>
-                            <select id="novaCategoriaTipo" class="form-select" style="max-width: 120px;" required>
-                                <option value="" disabled selected>Tipo</option>
-                                <option value="receita">Receita</option>
-                                <option value="despesa">Despesa</option>
-                            </select>
-                            <button class="btn btn-outline-primary" type="submit">Adicionar</button>
-                            <div class="invalid-feedback">Preencha o nome e selecione o tipo.</div>
-                        </div>
-                        <p class="text-muted small">As categorias padrão não podem ser excluídas.</p>
-                    </form>
-                    <h6>Categorias Atuais:</h6>
-                    <ul class="list-group" id="categoryList"></ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -161,8 +188,8 @@
             <a class="nav-link-app" href="relatorios.html">
                 <i class="bi bi-pie-chart fs-5"></i> Relatórios
             </a>
-            <a class="nav-link-app" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPerfil">
-                <i class="bi bi-person fs-5"></i> Perfil
+            <a class="nav-link-app" href="ferramentas.html">
+                <i class="bi bi-tools fs-5"></i> Ferramentas
             </a>
         </div>
     </nav>

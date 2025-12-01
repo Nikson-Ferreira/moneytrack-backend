@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Transações de Teste - MoneyTrack</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        button.primary {
+            background: #007bff;
+        }
+        button.primary:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Criar Transações de Teste</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Informação:</strong> Esta ferramenta cria transações de exemplo com datas recentes
+            para que você possa testar o sistema completo (dashboard, gráficos, relatórios).
+        </div>
+
+        <div class="info">
+            <strong>🌐 Banco de Dados:</strong> Você está usando o banco REMOTO (Render.com).
+            As transações criadas serão associadas à sua conta e só você poderá vê-las e gerenciá-las.
+        </div>
+
+        <button onclick="criarTransacoesBasicas()">Criar Transações Básicas (5)</button>
+        <button onclick="criarTransacoesCompletas()">Criar Transações Completas (15)</button>
+        <button onclick="limparTodasTransacoes()" style="background: #dc3545;">Limpar Todas</button>
+        <button onclick="voltarDashboard()" class="primary">Voltar ao Dashboard</button>
+
+        <div id="logConsole" class="log"></div>
+    </div>
+
+    <script type="module">
+        const API_BASE_URL = "https://moneytrack-backend.onrender.com";
+        
+        function log(message, color = '#0f0') {
+            const logConsole = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.style.color = color;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            console.log(message);
+        }
+
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+
+        function getDataRecente(diasAtras) {
+            const data = new Date();
+            data.setDate(data.getDate() - diasAtras);
+            const ano = data.getFullYear();
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const dia = String(data.getDate()).padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        async function criarTransacao(transacao) {
+            const token = getToken();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(transacao)
+                });
+
+                if (response.ok || response.status === 201) {
+                    const data = await response.json();
+                    log(`✓ Criada: ${transacao.description} - ${transacao.amount}`, '#0f0');
+                    return true;
+                } else {
+                    const error = await response.text();
+                    log(`✗ Erro: ${transacao.description} - Status ${response.status}`, '#f00');
+                    return false;
+                }
+            } catch (error) {
+                log(`✗ Erro: ${error.message}`, '#f00');
+                return false;
+            }
+        }
+
+        window.criarTransacoesBasicas = async function() {
+            log('Criando transações básicas...', '#fff');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            const transacoes = [
+                {
+                    description: 'Salário',
+                    amount: 3000,
+                    category: 'Salário',
+                    type: 'income',
+                    date: getDataRecente(5) + 'T00:00:00'
+                },
+                {
+                    description: 'Supermercado',
+                    amount: 250,
+                    category: 'Mercado',
+                    type: 'expense',
+                    date: getDataRecente(3) + 'T00:00:00'
+                },
+                {
+                    description: 'Aluguel',
+                    amount: 800,
+                    category: 'Moradia',
+                    type: 'expense',
+                    date: getDataRecente(2) + 'T00:00:00'
+                },
+                {
+                    description: 'Restaurante',
+                    amount: 80,
+                    category: 'Lazer',
+                    type: 'expense',
+                    date: getDataRecente(1) + 'T00:00:00'
+                },
+                {
+                    description: 'Freelance',
+                    amount: 500,
+                    category: 'Renda Extra',
+                    type: 'income',
+                    date: getDataRecente(0) + 'T00:00:00'
+                }
+            ];
+
+            let criadas = 0;
+            for (const t of transacoes) {
+                if (await criarTransacao(t)) {
+                    criadas++;
+                }
+            }
+
+            log(`\n=== RESULTADO ===`, '#fff');
+            log(`Criadas: ${criadas}/${transacoes.length}`, '#0f0');
+            log('\nRecarregue o dashboard para ver as transações!', '#ff0');
+        }
+
+        window.criarTransacoesCompletas = async function() {
+            log('Criando transações completas...', '#fff');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            const transacoes = [
+                // Receitas
+                { description: 'Salário', amount: 3000, category: 'Salário', type: 'income', date: getDataRecente(25) + 'T00:00:00' },
+                { description: 'Freelance', amount: 500, category: 'Renda Extra', type: 'income', date: getDataRecente(15) + 'T00:00:00' },
+                { description: 'Investimento', amount: 200, category: 'Investimento', type: 'income', date: getDataRecente(10) + 'T00:00:00' },
+                
+                // Despesas - Moradia
+                { description: 'Aluguel', amount: 800, category: 'Moradia', type: 'expense', date: getDataRecente(24) + 'T00:00:00' },
+                { description: 'Conta de Luz', amount: 120, category: 'Contas Residenciais', type: 'expense', date: getDataRecente(23) + 'T00:00:00' },
+                { description: 'Conta de Água', amount: 80, category: 'Contas Residenciais', type: 'expense', date: getDataRecente(22) + 'T00:00:00' },
+                
+                // Despesas - Alimentação
+                { description: 'Supermercado', amount: 250, category: 'Mercado', type: 'expense', date: getDataRecente(20) + 'T00:00:00' },
+                { description: 'Feira', amount: 100, category: 'Mercado', type: 'expense', date: getDataRecente(18) + 'T00:00:00' },
+                
+                // Despesas - Transporte
+                { description: 'Gasolina', amount: 150, category: 'Transporte', type: 'expense', date: getDataRecente(16) + 'T00:00:00' },
+                { description: 'Uber', amount: 45, category: 'Transporte', type: 'expense', date: getDataRecente(14) + 'T00:00:00' },
+                
+                // Despesas - Lazer
+                { description: 'Cinema', amount: 60, category: 'Entretenimento', type: 'expense', date: getDataRecente(12) + 'T00:00:00' },
+                { description: 'Restaurante', amount: 120, category: 'Lazer', type: 'expense', date: getDataRecente(8) + 'T00:00:00' },
+                
+                // Despesas - Saúde
+                { description: 'Farmácia', amount: 85, category: 'Saúde', type: 'expense', date: getDataRecente(6) + 'T00:00:00' },
+                
+                // Despesas - Educação
+                { description: 'Curso Online', amount: 200, category: 'Educação', type: 'expense', date: getDataRecente(4) + 'T00:00:00' },
+                
+                // Despesas - Outros
+                { description: 'Presente', amount: 90, category: 'Outros', type: 'expense', date: getDataRecente(2) + 'T00:00:00' }
+            ];
+
+            let criadas = 0;
+            for (const t of transacoes) {
+                if (await criarTransacao(t)) {
+                    criadas++;
+                }
+            }
+
+            log(`\n=== RESULTADO ===`, '#fff');
+            log(`Criadas: ${criadas}/${transacoes.length}`, '#0f0');
+            log('\nRecarregue o dashboard para ver as transações!', '#ff0');
+        }
+
+        window.limparTodasTransacoes = async function() {
+            if (!confirm('Tem certeza que deseja deletar TODAS as transações?\n\nEsta ação não pode ser desfeita!')) {
+                log('Operação cancelada', '#ff0');
+                return;
+            }
+
+            log('Buscando transações...', '#fff');
+            
+            const token = getToken();
+            if (!token) {
+                log('ERRO: Você precisa estar logado!', '#f00');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    log(`ERRO: Status ${response.status}`, '#f00');
+                    return;
+                }
+
+                const transactions = await response.json();
+                log(`Encontradas ${transactions.length} transações`, '#fff');
+
+                let deletadas = 0;
+                let erros = 0;
+
+                for (const t of transactions) {
+                    try {
+                        const deleteResponse = await fetch(`${API_BASE_URL}/transactions/${t.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (deleteResponse.status === 204 || deleteResponse.ok) {
+                            deletadas++;
+                            log(`✓ Deletada: ${t.description}`, '#0f0');
+                        } else {
+                            erros++;
+                            log(`✗ Erro ao deletar: ${t.description}`, '#f00');
+                        }
+                    } catch (error) {
+                        erros++;
+                        log(`✗ Erro: ${error.message}`, '#f00');
+                    }
+                }
+
+                log(`\n=== RESULTADO ===`, '#fff');
+                log(`Deletadas: ${deletadas}`, '#0f0');
+                log(`Erros: ${erros}`, erros > 0 ? '#f00' : '#0f0');
+
+            } catch (error) {
+                log(`ERRO: ${error.message}`, '#f00');
+            }
+        }
+
+        window.voltarDashboard = function() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Log inicial
+        log('Ferramenta de criação de transações carregada', '#fff');
+        log('Escolha uma opção acima', '#fff');
+    </script>
+</body>
+</html>

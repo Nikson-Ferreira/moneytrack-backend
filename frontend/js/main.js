@@ -1,4 +1,4 @@
-import * as TransactionService from './transactionService.js';
+import { TransactionService } from './transactionService.js';
 import { AuthService } from './authService.js';
 import { 
     formatCurrency, 
@@ -13,13 +13,16 @@ import {
     applyBootstrapValidation
 } from './utils.js';
 
+// Global variable for current user
+let currentUser = null;
+
 // --- DASHBOARD E INFORMAÇÕES GERAIS ---
 
 async function renderInitialData() {
     const saldoEl = document.getElementById('saldo-total');
     const receitaEl = document.getElementById('receita-total');
     const despesaEl = document.getElementById('despesa-total');
-    const ultimasTransacoesList = document.getElementById('ultimas-transacoes-list');
+    const ultimasTransacoesList = document.getElementById('recent-transactions-list');
 
     if (!saldoEl) return; 
 
@@ -68,9 +71,9 @@ async function renderInitialData() {
 // --- AUTENTICAÇÃO E CADASTRO ---
 
 async function handleLoginSubmit(e) { 
-    console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
+    console.log("[MAIN-LOGIN] Formulário de login submetido");
     e.preventDefault();
-    e.preventDefault();
+    
     const loginForm = document.getElementById('loginForm');
     loginForm.classList.remove('was-validated');
 
@@ -80,26 +83,33 @@ async function handleLoginSubmit(e) {
     const email = emailInput.value;
     const senha = senhaInput.value;
     
+    console.log("[MAIN-LOGIN] Email:", email);
+    console.log("[MAIN-LOGIN] Senha fornecida:", senha ? "***" : "(vazia)");
+    
     applyBootstrapValidation(emailInput, true);
     applyBootstrapValidation(senhaInput, true);
 
     if (!email || !senha) {
+        console.log("[MAIN-LOGIN] ERRO: Campos vazios");
         loginForm.classList.add('was-validated');
         return;
     }
 
     try {
+        console.log("[MAIN-LOGIN] Chamando AuthService.login...");
         const result = await AuthService.login(email, senha); 
 
         if (result.success) {
+            console.log("[MAIN-LOGIN] Login bem-sucedido! Redirecionando...");
             window.location.href = 'dashboard.html';
         } else {
+            console.log("[MAIN-LOGIN] ERRO: Login falhou com status:", result.status);
             const errorMessage = result.message || 'Email ou senha inválidos.';
             applyBootstrapValidation(emailInput, false, errorMessage);
             applyBootstrapValidation(senhaInput, false, ' '); 
         }
     } catch (error) {
-        console.error("Erro durante o login:", error);
+        console.error("[MAIN-LOGIN] ERRO CRÍTICO durante o login:", error);
         alert("Erro de conexão. Tente novamente mais tarde.");
     }
 }
@@ -110,61 +120,9 @@ function setupLogin() {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 }
-function initApp() {
-    const pathname = window.location.pathname;
-    
-    // 1. Lógica de Login/Cadastro (Páginas Não Protegidas)
-
-    if (document.getElementById('cadastroForm')) { 
-        setupCadastro();
-        return; 
-    }
-    
-    if (document.getElementById('loginForm')) { 
-        setupLogin();
-        return;
-    }
-    
-    // 2. Lógica Comum e Proteção de Rotas (Para Dashboard e Logados)
-
-    const isAuthenticated = AuthService.getToken();
-    
-    const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
-    const requiresAuth = protectedPages.some(page => pathname.includes(page));
-
-    // Proteção: Redireciona se precisa de Auth e não está autenticado.
-    if (requiresAuth && !isAuthenticated) {
-        window.location.href = 'index.html'; 
-        return;
-    }
-
-    // Configuração Comum (Disponível APENAS em páginas logadas)
-    if (isAuthenticated) {
-        let currentUser = AuthService.loadUserData() || {};
-        setupLogout();
-        setupNovaTransacao();
-        setupEditTransacao();
-        setupHistoricoListeners(); 
-        updateProfileInfo(); 
-    }
-
-
-    // 3. Configuração Específica de Páginas Protegidas
-    if (requiresAuth && isAuthenticated) {
-        if (pathname.includes('dashboard.html')) {
-            renderInitialData(); 
-        } else if (pathname.includes('historico.html')) {
-            setupHistoricoFilter(); 
-        } else if (pathname.includes('relatorios.html')) {
-            setupRelatoriosFilter();
-        } else if (pathname.includes('perfil.html')) {
-            setupProfilePage();
-        }
-    }
-}
 
 async function handleCadastroSubmit(e) {
-    console.log("TESTE: O listener do Cadastro foi acionado e e.preventDefault() será chamado.");
+    console.log("[MAIN-CADASTRO] Formulário de cadastro submetido");
     e.preventDefault(); 
 
     const nomeInput = document.getElementById('nome');
@@ -181,23 +139,31 @@ async function handleCadastroSubmit(e) {
     const email = emailInput.value.trim();
     const senha = senhaInput.value;
 
+    console.log("[MAIN-CADASTRO] Nome:", nome);
+    console.log("[MAIN-CADASTRO] Email:", email);
+    console.log("[MAIN-CADASTRO] Senha fornecida:", senha ? "***" : "(vazia)");
+
     // 3. Validação de Frontend Básica
     let isFormValid = true;
 
     if (!nome) {
+        console.log("[MAIN-CADASTRO] ERRO: Nome vazio");
         applyBootstrapValidation(nomeInput, false, 'O nome é obrigatório.');
         isFormValid = false;
     }
     if (!email || !email.includes('@')) {
+        console.log("[MAIN-CADASTRO] ERRO: Email inválido");
         applyBootstrapValidation(emailInput, false, 'Insira um email válido.');
         isFormValid = false;
     }
     if (!senha || senha.length < 6) {
+        console.log("[MAIN-CADASTRO] ERRO: Senha muito curta");
         applyBootstrapValidation(senhaInput, false, 'A senha deve ter pelo menos 6 caracteres.');
         isFormValid = false;
     }
 
     if (!isFormValid) {
+        console.log("[MAIN-CADASTRO] Validação falhou, abortando");
         return;
     }
 
@@ -209,21 +175,27 @@ async function handleCadastroSubmit(e) {
         monthly_income: 0 // Campo obrigatório
     }
     
+    console.log("[MAIN-CADASTRO] Dados validados, preparando requisição:", userData);
+    
     // Variável declarada aqui para garantir escopo
     let result = null; 
     
     // 4. Chamar o Serviço de Autenticação (Backend)
     try {
-        console.log("DEBUG: Enviando requisição com:", userData); 
+        console.log("[MAIN-CADASTRO] Chamando AuthService.registerUser..."); 
         result = await AuthService.registerUser(userData);
+
+        console.log("[MAIN-CADASTRO] Resposta recebida:", result);
 
         if (result.success) {
             // SUCESSO
+            console.log("[MAIN-CADASTRO] Cadastro bem-sucedido!");
             alert(`Usuário ${nome.split(' ')[0]} cadastrado com sucesso! Redirecionando para o Login.`);
             window.location.href = 'index.html';
 
         } else if (result.status === 400 || result.status === 422) {
             // ERRO 400/422 (Tratamento de Validação)
+            console.log("[MAIN-CADASTRO] ERRO: Status", result.status);
             
             let errorMessage = "Erro de validação: Verifique seus dados."; 
             
@@ -233,6 +205,8 @@ async function handleCadastroSubmit(e) {
             } else if (result.data && result.data.message) {
                 errorMessage = result.data.message;
             }
+            
+            console.log("[MAIN-CADASTRO] Mensagem de erro:", errorMessage);
             
             // Tratamento de Erro Específico (Email Duplicado/Incorreto)
             if (errorMessage.toLowerCase().includes('email') || errorMessage.toLowerCase().includes('exists') || errorMessage.toLowerCase().includes('já existe')) {
@@ -245,13 +219,14 @@ async function handleCadastroSubmit(e) {
             
         } else {
             // Outros Erros HTTP
+            console.log("[MAIN-CADASTRO] ERRO: Status inesperado", result.status);
             alert("Erro inesperado do servidor. Tente novamente.");
-            console.error("Erro inesperado da API:", result);
+            console.error("[MAIN-CADASTRO] Detalhes do erro:", result);
         }
 
     } catch (error) {
         // 5. Falha de Rede/Servidor
-        console.error("Falha de comunicação ou erro de execução:", error);
+        console.error("[MAIN-CADASTRO] ERRO CRÍTICO:", error);
         alert("Falha de comunicação com o servidor. Verifique sua conexão ou tente mais tarde.");
     }
 }
@@ -303,6 +278,15 @@ function setupNovaTransacao() {
         const data = dataInput.value;
         const tipo = tipoInput ? tipoInput.value : '';
 
+        console.log('[MAIN-NOVA-TRANSACAO] Valores do formulário:');
+        console.log('  Valor:', valor);
+        console.log('  Descrição:', descricao);
+        console.log('  Categoria:', categoria);
+        console.log('  Categoria Input Element:', categoriaInput);
+        console.log('  Opções disponíveis:', Array.from(categoriaInput.options).map(o => o.value));
+        console.log('  Data:', data);
+        console.log('  Tipo:', tipo);
+
         if (isNaN(valor) || valor <= 0) {
             formIsValid = false;
             applyBootstrapValidation(valorInput, false, 'O valor deve ser positivo.');
@@ -333,8 +317,10 @@ function setupNovaTransacao() {
 
         if (formIsValid) {
             const newTransaction = { tipo, valor, descricao, categoria, data };
+            console.log('[MAIN-NOVA-TRANSACAO] Transação a ser enviada:', newTransaction);
             
             try {
+                console.log('[MAIN-NOVA-TRANSACAO] Chamando TransactionService.addTransaction...');
                 await TransactionService.addTransaction(newTransaction); 
                 
                 const modal = bootstrap.Modal.getInstance(modalElement);
@@ -803,11 +789,19 @@ async function setupRelatoriosFilter() {
 // --- UTILS DE PERFIL E FORMULÁRIO ---
 
 function populateCategorySelect(selectId, selectedCategoryName = '') {
+    console.log('[POPULATE-CATEGORY] Populando select:', selectId);
     const select = document.getElementById(selectId);
-    if (!select) return;
+    
+    if (!select) {
+        console.error('[POPULATE-CATEGORY] ERRO: Select não encontrado:', selectId);
+        return;
+    }
 
     select.innerHTML = '<option value="">Selecione...</option>';
     const categories = getCategories();
+    
+    console.log('[POPULATE-CATEGORY] Categorias disponíveis:', categories);
+    console.log('[POPULATE-CATEGORY] Total de categorias:', categories.length);
 
     categories.forEach(category => {
         const option = document.createElement('option');
@@ -817,7 +811,10 @@ function populateCategorySelect(selectId, selectedCategoryName = '') {
             option.selected = true;
         }
         select.appendChild(option);
+        console.log('[POPULATE-CATEGORY] Adicionada categoria:', category.name);
     });
+    
+    console.log('[POPULATE-CATEGORY] Select populado com', select.options.length, 'opções');
 }
 
 function getCurrentDateFormatted() {
@@ -829,7 +826,14 @@ function getCurrentDateFormatted() {
 }
 
 function updateProfileInfo() {
-    if (!currentUser || !currentUser.name) return;
+    if (!currentUser || !currentUser.name) {
+        console.log('[UPDATE-PROFILE] Usuário não encontrado');
+        return;
+    }
+
+    console.log('[UPDATE-PROFILE] Atualizando informações do perfil');
+    console.log('[UPDATE-PROFILE] Usuário:', currentUser.name);
+    console.log('[UPDATE-PROFILE] Foto:', currentUser.photoURL ? 'Presente' : 'Ausente');
 
     const dashboardHeaderName = document.getElementById('dashboardHeaderName');
     if (dashboardHeaderName) {
@@ -846,21 +850,32 @@ function updateProfileInfo() {
     const profileImages = document.querySelectorAll('.perfil-img');
     const profileIcons = document.querySelectorAll('.perfil-icon, .perfil-icon-offcanvas');
 
+    console.log('[UPDATE-PROFILE] Imagens encontradas:', profileImages.length);
+    console.log('[UPDATE-PROFILE] Ícones encontrados:', profileIcons.length);
+
     if (photoURL) {
-        profileImages.forEach(img => {
+        console.log('[UPDATE-PROFILE] Aplicando foto de perfil');
+        profileImages.forEach((img, index) => {
             img.src = photoURL;
             img.classList.remove('d-none');
+            img.style.display = 'block';
+            console.log(`[UPDATE-PROFILE] Imagem ${index + 1} atualizada`);
         });
-        profileIcons.forEach(icon => {
+        profileIcons.forEach((icon, index) => {
             icon.classList.add('d-none');
+            icon.style.display = 'none';
+            console.log(`[UPDATE-PROFILE] Ícone ${index + 1} ocultado`);
         });
     } else {
+        console.log('[UPDATE-PROFILE] Sem foto, mostrando ícone padrão');
         profileImages.forEach(img => {
             img.classList.add('d-none');
+            img.style.display = 'none';
             img.src = '';
         });
         profileIcons.forEach(icon => {
             icon.classList.remove('d-none');
+            icon.style.display = 'block';
         });
     }
 }
@@ -873,6 +888,63 @@ function setupLogout() {
             window.location.href = 'index.html';
         });
     }
+}
+
+function setupPhotoUpload() {
+    const photoInput = document.getElementById('profilePhotoInput');
+    if (!photoInput) return;
+
+    photoInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        console.log('[PHOTO-UPLOAD] Arquivo selecionado:', file.name);
+
+        // Validar tipo de arquivo
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor, selecione apenas arquivos de imagem!');
+            return;
+        }
+
+        // Validar tamanho (máximo 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('A imagem deve ter no máximo 2MB!');
+            return;
+        }
+
+        try {
+            // Converter para base64
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const photoURL = event.target.result;
+                console.log('[PHOTO-UPLOAD] Imagem convertida para base64');
+
+                // Salvar no localStorage
+                const user = AuthService.loadUserData() || {};
+                user.photoURL = photoURL;
+                AuthService.saveUserData(user);
+
+                console.log('[PHOTO-UPLOAD] Foto salva no localStorage');
+
+                // Atualizar interface
+                currentUser = user;
+                updateProfileInfo();
+
+                alert('Foto de perfil atualizada com sucesso!');
+            };
+
+            reader.onerror = function() {
+                console.error('[PHOTO-UPLOAD] Erro ao ler arquivo');
+                alert('Erro ao processar a imagem. Tente novamente.');
+            };
+
+            reader.readAsDataURL(file);
+
+        } catch (error) {
+            console.error('[PHOTO-UPLOAD] Erro:', error);
+            alert('Erro ao fazer upload da foto. Tente novamente.');
+        }
+    });
 }
 
 function setupProfilePage() {
@@ -915,7 +987,7 @@ function initApp() {
     
     const isAuthenticated = AuthService.getToken();
     
-    const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html'];
+    const protectedPages = ['dashboard.html', 'historico.html', 'perfil.html', 'relatorios.html', 'ferramentas.html'];
     const requiresAuth = protectedPages.some(page => pathname.includes(page));
 
     // Proteção: Redireciona se precisa de Auth e não está autenticado.
@@ -926,8 +998,9 @@ function initApp() {
 
     // Configuração Comum (Disponível APENAS em páginas logadas)
     if (isAuthenticated) {
-        let currentUser = AuthService.loadUserData() || {};
+        currentUser = AuthService.loadUserData() || {};
         setupLogout();
+        setupPhotoUpload();
         setupNovaTransacao();
         setupEditTransacao();
         setupHistoricoListeners(); 

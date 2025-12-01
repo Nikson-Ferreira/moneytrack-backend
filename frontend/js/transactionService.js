@@ -19,14 +19,23 @@ export const TransactionService = {
     // READ (GET /transactions/)
     // ------------------------------------
     async getTransactions() {
+        console.log('[TRANSACTION-SERVICE] Buscando transações...');
         const headers = getAuthHeaders();
         const response = await fetch(`${API_BASE_URL}/transactions/`, {
             method: 'GET',
             headers: headers
         });
 
+        console.log('[TRANSACTION-SERVICE] Status da resposta:', response.status);
+
         if (response.ok) {
             const transactions = await response.json();
+            console.log('[TRANSACTION-SERVICE] Transações recebidas:', transactions.length);
+            
+            if (transactions.length > 0) {
+                console.log('[TRANSACTION-SERVICE] Exemplo de transação (antes do mapeamento):', transactions[0]);
+            }
+            
             const categories = getCategories(); 
             
             // Cria um mapa para busca rápida de ícones
@@ -35,18 +44,29 @@ export const TransactionService = {
                 return map;
             }, {});
 
-            return transactions.map(t => {
+            const mapped = transactions.map(t => {
                 return {
                     ...t,
                     icon: categoryMap[t.category] || 'question-circle',
                     // Mapeamento de campos do Backend (Inglês) para o Frontend (Português)
                     descricao: t.description, 
                     valor: t.amount,
-                    categoria: t.category
+                    categoria: t.category,
+                    tipo: t.type === 'income' ? 'receita' : 'despesa',
+                    data: t.date
                 };
             });
+            
+            if (mapped.length > 0) {
+                console.log('[TRANSACTION-SERVICE] Exemplo de transação (depois do mapeamento):', mapped[0]);
+            }
+            
+            return mapped;
         }
-        throw new Error('Erro ao carregar transações.');
+        
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[TRANSACTION-SERVICE] Erro ao buscar transações:', errorData);
+        throw new Error(errorData.detail || 'Erro ao carregar transações.');
     },
 
     // ------------------------------------
@@ -55,13 +75,17 @@ export const TransactionService = {
     async addTransaction(newTransaction) {
         const headers = getAuthHeaders();
         
+        console.log('[TRANSACTION-SERVICE] Adicionando transação:', newTransaction);
+        
         const payload = {
             description: newTransaction.descricao,
             amount: parseFloat(newTransaction.valor),
             category: newTransaction.categoria,
-            type: newTransaction.tipo,
+            type: newTransaction.tipo === 'receita' ? 'income' : 'expense',
             date: newTransaction.data + "T00:00:00" 
         };
+
+        console.log('[TRANSACTION-SERVICE] Payload enviado:', payload);
 
         const response = await fetch(`${API_BASE_URL}/transactions/`, {
             method: 'POST',
@@ -69,10 +93,17 @@ export const TransactionService = {
             body: JSON.stringify(payload)
         });
 
-        if (response.status === 201) {
-            return await response.json();
+        console.log('[TRANSACTION-SERVICE] Status da resposta:', response.status);
+
+        if (response.status === 201 || response.status === 200) {
+            const result = await response.json();
+            console.log('[TRANSACTION-SERVICE] Transação criada:', result);
+            return result;
         }
-        throw new Error('Erro ao adicionar transação.');
+        
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[TRANSACTION-SERVICE] Erro ao criar transação:', errorData);
+        throw new Error(errorData.detail || 'Erro ao adicionar transação.');
     },
 
     // ------------------------------------
@@ -85,7 +116,7 @@ export const TransactionService = {
             description: updatedTransaction.descricao,
             amount: parseFloat(updatedTransaction.valor),
             category: updatedTransaction.categoria,
-            type: updatedTransaction.tipo,
+            type: updatedTransaction.tipo === 'receita' ? 'income' : 'expense',
             date: updatedTransaction.data ? updatedTransaction.data + "T00:00:00" : undefined 
         };
 
@@ -98,7 +129,9 @@ export const TransactionService = {
         if (response.ok) {
             return await response.json();
         }
-        throw new Error('Erro ao atualizar transação.');
+        
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Erro ao atualizar transação.');
     },
 
     // ------------------------------------
@@ -114,6 +147,8 @@ export const TransactionService = {
         if (response.status === 204) { 
             return { success: true };
         }
-        throw new Error('Erro ao deletar transação.');
+        
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Erro ao deletar transação.');
     }
 };

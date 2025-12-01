@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Categorias - MoneyTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="bi bi-tags"></i> Gerenciar Categorias</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Adicionar Nova Categoria -->
+                        <div class="mb-4">
+                            <h5>Adicionar Nova Categoria</h5>
+                            <form id="formNovaCategoria" class="row g-3">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" id="nomeCategoria" placeholder="Nome da categoria" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="tipoCategoria" required>
+                                        <option value="">Tipo...</option>
+                                        <option value="receita">Receita</option>
+                                        <option value="despesa">Despesa</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" id="iconeCategoria" placeholder="Ícone" value="star">
+                                    <small class="text-muted">Ex: star, heart</small>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-plus-circle"></i> Adicionar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <hr>
+
+                        <!-- Lista de Categorias -->
+                        <div>
+                            <h5>Categorias Existentes</h5>
+                            
+                            <h6 class="mt-3 text-success">Receitas</h6>
+                            <div id="listaReceitas" class="list-group mb-3"></div>
+
+                            <h6 class="mt-3 text-danger">Despesas</h6>
+                            <div id="listaDespesas" class="list-group mb-3"></div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button onclick="voltarDashboard()" class="btn btn-primary">
+                                <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                            </button>
+                            <button onclick="resetarCategorias()" class="btn btn-warning">
+                                <i class="bi bi-arrow-clockwise"></i> Restaurar Padrões
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCategories, addCategory, deleteCategory, getDefaultCategories, saveCategories } from './js/utils.js';
+
+        function renderCategorias() {
+            const categories = getCategories();
+            const listaReceitas = document.getElementById('listaReceitas');
+            const listaDespesas = document.getElementById('listaDespesas');
+
+            listaReceitas.innerHTML = '';
+            listaDespesas.innerHTML = '';
+
+            const receitas = categories.filter(c => c.type === 'receita');
+            const despesas = categories.filter(c => c.type === 'despesa');
+
+            receitas.forEach(cat => {
+                const item = criarItemCategoria(cat);
+                listaReceitas.appendChild(item);
+            });
+
+            despesas.forEach(cat => {
+                const item = criarItemCategoria(cat);
+                listaDespesas.appendChild(item);
+            });
+        }
+
+        function criarItemCategoria(cat) {
+            const div = document.createElement('div');
+            div.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            const isPadrao = getDefaultCategories().some(d => d.name === cat.name);
+            
+            div.innerHTML = `
+                <div>
+                    <i class="bi bi-${cat.icon} me-2"></i>
+                    <strong>${cat.name}</strong>
+                    ${isPadrao ? '<span class="badge bg-secondary ms-2">Padrão</span>' : ''}
+                </div>
+                ${!isPadrao ? `
+                    <button class="btn btn-sm btn-danger" onclick="deletarCategoria('${cat.name}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                ` : ''}
+            `;
+            
+            return div;
+        }
+
+        window.deletarCategoria = function(nome) {
+            if (confirm(`Deseja realmente deletar a categoria "${nome}"?`)) {
+                if (deleteCategory(nome)) {
+                    alert('Categoria deletada com sucesso!');
+                    renderCategorias();
+                } else {
+                    alert('Não é possível deletar categorias padrão!');
+                }
+            }
+        }
+
+        window.resetarCategorias = function() {
+            if (confirm('Deseja restaurar as categorias padrão?\n\nIsso irá remover todas as categorias personalizadas!')) {
+                saveCategories(getDefaultCategories());
+                alert('Categorias restauradas!');
+                renderCategorias();
+            }
+        }
+
+        window.voltarDashboard = function() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Form de adicionar categoria
+        document.getElementById('formNovaCategoria').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nomeCategoria').value.trim();
+            const tipo = document.getElementById('tipoCategoria').value;
+            const icone = document.getElementById('iconeCategoria').value.trim() || 'star';
+
+            if (!nome || !tipo) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            const novaCategoria = {
+                name: nome,
+                type: tipo,
+                icon: icone
+            };
+
+            if (addCategory(novaCategoria)) {
+                alert('Categoria adicionada com sucesso!');
+                document.getElementById('formNovaCategoria').reset();
+                renderCategorias();
+            } else {
+                alert('Já existe uma categoria com este nome!');
+            }
+        });
+
+        // Renderiza ao carregar
+        renderCategorias();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

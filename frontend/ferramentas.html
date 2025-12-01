@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoneyTrack - Ferramentas</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="./css/style.css" rel="stylesheet">
+  <style>
+    body { padding-bottom: 70px; }
+    .tool-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      height: 100%;
+    }
+    .tool-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .tool-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .badge-new {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header class="p-3 bg-white shadow-sm sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">🛠️ Ferramentas de Desenvolvimento</h5>
+        <p class="text-muted small mb-0">Utilitários para gerenciar e testar o sistema</p>
+      </div>
+      <div>
+        <img src="LOGO MoneyTrack.png" alt="Logo" style="height: 50px;">
+      </div>
+      <button class="btn btn-light rounded-circle p-0" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPerfil" style="width: 40px; height: 40px; overflow: hidden;">
+        <img class="perfil-img rounded-circle w-100 h-100 object-fit-cover d-none" src="" alt="Foto de Perfil">
+        <i class="bi bi-person-circle fs-5 perfil-icon" style="line-height: 40px;"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container py-4">
+    <!-- Seção: Gerenciamento de Dados -->
+    <div class="mb-5">
+      <h4 class="mb-3"><i class="bi bi-database"></i> Gerenciamento de Dados</h4>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="window.location.href='criar_transacoes_teste.html'">
+            <div class="card-body text-center position-relative">
+              <span class="badge bg-success badge-new">Recomendado</span>
+              <i class="bi bi-database-add tool-icon text-success"></i>
+              <h5 class="card-title">Criar Transações de Teste</h5>
+              <p class="card-text text-muted">Crie transações de exemplo para testar o sistema completo.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ 5 transações básicas</li>
+                <li>✓ 15 transações completas</li>
+                <li>✓ Datas recentes</li>
+                <li>✓ Todas as categorias</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="window.location.href='limpar_transacoes_antigas.html'">
+            <div class="card-body text-center">
+              <i class="bi bi-trash tool-icon text-danger"></i>
+              <h5 class="card-title">Limpar Transações Antigas</h5>
+              <p class="card-text text-muted">Remove transações com datas inválidas ou muito antigas.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Listar transações</li>
+                <li>✓ Identificar antigas</li>
+                <li>✓ Deletar em lote</li>
+                <li>✓ Logs detalhados</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="window.location.href='verificar_usuario.html'">
+            <div class="card-body text-center">
+              <i class="bi bi-person-check tool-icon text-info"></i>
+              <h5 class="card-title">Verificar Usuário</h5>
+              <p class="card-text text-muted">Veja informações do usuário logado e suas transações.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Dados do usuário</li>
+                <li>✓ Lista de transações</li>
+                <li>✓ Resumo financeiro</li>
+                <li>✓ Status do token</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Configuração -->
+    <div class="mb-5">
+      <h4 class="mb-3"><i class="bi bi-gear"></i> Configuração</h4>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="window.location.href='gerenciar_categorias.html'">
+            <div class="card-body text-center">
+              <i class="bi bi-tags tool-icon text-primary"></i>
+              <h5 class="card-title">Gerenciar Categorias</h5>
+              <p class="card-text text-muted">Adicione, edite ou remova categorias personalizadas.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Adicionar categoria</li>
+                <li>✓ Deletar categoria</li>
+                <li>✓ Restaurar padrões</li>
+                <li>✓ Visualizar todas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="limparCache()">
+            <div class="card-body text-center">
+              <i class="bi bi-arrow-clockwise tool-icon text-warning"></i>
+              <h5 class="card-title">Limpar Cache</h5>
+              <p class="card-text text-muted">Limpa todos os dados do localStorage e recarrega.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Limpa token</li>
+                <li>✓ Limpa usuário</li>
+                <li>✓ Limpa categorias</li>
+                <li>✓ Recarrega página</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="exportarDados()">
+            <div class="card-body text-center">
+              <i class="bi bi-download tool-icon text-secondary"></i>
+              <h5 class="card-title">Exportar Dados</h5>
+              <p class="card-text text-muted">Exporta dados do localStorage para backup.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Dados do usuário</li>
+                <li>✓ Categorias</li>
+                <li>✓ Configurações</li>
+                <li>✓ Formato JSON</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Testes e Debug -->
+    <div class="mb-5">
+      <h4 class="mb-3"><i class="bi bi-bug"></i> Testes e Debug</h4>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="window.location.href='test_auth.html'">
+            <div class="card-body text-center">
+              <i class="bi bi-shield-check tool-icon text-success"></i>
+              <h5 class="card-title">Testar Autenticação</h5>
+              <p class="card-text text-muted">Teste conexão, registro e login com a API.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Testar conexão</li>
+                <li>✓ Testar registro</li>
+                <li>✓ Testar login</li>
+                <li>✓ Console integrado</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="abrirConsole()">
+            <div class="card-body text-center">
+              <i class="bi bi-terminal tool-icon text-dark"></i>
+              <h5 class="card-title">Abrir Console</h5>
+              <p class="card-text text-muted">Abre o console do desenvolvedor (F12).</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Ver logs</li>
+                <li>✓ Executar comandos</li>
+                <li>✓ Debug em tempo real</li>
+                <li>✓ Inspecionar elementos</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card tool-card shadow-sm" onclick="mostrarInformacoes()">
+            <div class="card-body text-center">
+              <i class="bi bi-info-circle tool-icon text-info"></i>
+              <h5 class="card-title">Informações do Sistema</h5>
+              <p class="card-text text-muted">Mostra informações sobre o sistema e configurações.</p>
+              <ul class="list-unstyled text-start small">
+                <li>✓ Versão do navegador</li>
+                <li>✓ URL da API</li>
+                <li>✓ Status do localStorage</li>
+                <li>✓ Dados armazenados</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <div class="text-center">
+      <a href="dashboard.html" class="btn btn-primary btn-lg">
+        <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+      </a>
+    </div>
+  </main>
+
+  <!-- Offcanvas de Perfil -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPerfil" aria-labelledby="offcanvasPerfilLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasPerfilLabel">Meu Perfil</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="text-center mb-4">
+        <div class="position-relative d-inline-block">
+          <img class="perfil-img rounded-circle object-fit-cover" id="perfil-offcanvas-img" src="" alt="Foto de Perfil" style="width: 100px; height: 100px;">
+          <i class="bi bi-person-circle fs-1 perfil-icon-offcanvas" id="perfil-icon-offcanvas" style="line-height: 100px; width: 100px;"></i>
+          <label for="profilePhotoInput" class="btn btn-sm btn-light rounded-circle position-absolute bottom-0 end-0 p-0" style="width: 30px; height: 30px; line-height: 30px; cursor: pointer;">
+            <i class="bi bi-camera"></i>
+          </label>
+          <input type="file" id="profilePhotoInput" accept="image/*" class="d-none">
+        </div>
+        <h5 class="mt-3 mb-0 perfil-nome"></h5>
+        <p class="text-muted small perfil-email"></p>
+      </div>
+      <ul class="list-group list-group-flush mb-4">
+        <li class="list-group-item">
+          <a href="gerenciar_categorias.html" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-tags me-2"></i> Gerenciar Categorias
+          </a>
+        </li>
+        <li class="list-group-item">
+          <a href="ferramentas.html" class="btn btn-outline-info btn-sm w-100">
+            <i class="bi bi-tools me-2"></i> Ferramentas
+          </a>
+        </li>
+        <li class="list-group-item">
+          <button id="logoutBtn" class="btn btn-danger btn-sm w-100">
+            <i class="bi bi-box-arrow-right me-2"></i> Sair
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="navbar navbar-light bg-white fixed-bottom shadow-lg">
+    <div class="container-fluid justify-content-around">
+      <a class="nav-link-app" href="dashboard.html">
+        <i class="bi bi-house-door fs-5"></i> Dashboard
+      </a>
+      <a class="nav-link-app" href="historico.html">
+        <i class="bi bi-list-columns fs-5"></i> Histórico
+      </a>
+      <a class="nav-link-app" href="relatorios.html">
+        <i class="bi bi-pie-chart fs-5"></i> Relatórios
+      </a>
+      <a class="nav-link-app active" href="ferramentas.html">
+        <i class="bi bi-tools fs-5"></i> Ferramentas
+      </a>
+    </div>
+  </nav>
+
+  <script type="module" src="./js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    function limparCache() {
+      if (confirm('Tem certeza que deseja limpar todos os dados do cache?\n\nVocê precisará fazer login novamente.')) {
+        localStorage.clear();
+        alert('Cache limpo com sucesso!');
+        window.location.href = 'index.html';
+      }
+    }
+
+    function exportarDados() {
+      const dados = {
+        usuario: JSON.parse(localStorage.getItem('moneyTrackUser') || '{}'),
+        categorias: JSON.parse(localStorage.getItem('moneyTrackCategories') || '[]'),
+        token: localStorage.getItem('accessToken') || null,
+        dataExportacao: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `moneytrack-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert('Dados exportados com sucesso!');
+    }
+
+    function abrirConsole() {
+      alert('Pressione F12 para abrir o Console do Desenvolvedor\n\nOu clique com o botão direito → Inspecionar');
+    }
+
+    function mostrarInformacoes() {
+      const apiUrl = 'https://moneytrack-backend.onrender.com';
+      const isRemote = apiUrl.includes('render.com') || apiUrl.includes('herokuapp.com');
+      const bancoTipo = isRemote ? 'REMOTO (Render.com)' : 'LOCAL (localhost)';
+      
+      const info = `
+=== INFORMAÇÕES DO SISTEMA ===
+
+Navegador: ${navigator.userAgent.split(' ').slice(-2).join(' ')}
+Idioma: ${navigator.language}
+Online: ${navigator.onLine ? 'Sim' : 'Não'}
+
+=== CONFIGURAÇÕES ===
+
+API URL: ${apiUrl}
+Tipo de Banco: ${bancoTipo}
+localStorage Disponível: ${typeof(Storage) !== "undefined" ? 'Sim' : 'Não'}
+
+=== DADOS ARMAZENADOS ===
+
+Token: ${localStorage.getItem('accessToken') ? 'Presente' : 'Ausente'}
+Usuário: ${localStorage.getItem('moneyTrackUser') ? 'Presente' : 'Ausente'}
+Categorias: ${localStorage.getItem('moneyTrackCategories') ? 'Presente' : 'Ausente'}
+
+Tamanho total: ${new Blob(Object.values(localStorage)).size} bytes
+
+=== OBSERVAÇÕES ===
+
+${isRemote ? '⚠️  Usando banco REMOTO (compartilhado)\n✓ Suas transações são privadas\n✓ Pode ver transações de outros na listagem\n✓ Não pode deletar transações de outros' : '✓ Usando banco LOCAL (privado)\n✓ Apenas seus dados\n✓ Requer backend rodando localmente'}
+      `.trim();
+
+      alert(info);
+      console.log(info);
+    }
+  </script>
+</body>
+</html>
